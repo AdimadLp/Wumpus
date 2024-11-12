@@ -1,1 +1,3 @@
-spade
+# Python3.10.12
+spade==3.3.3
+pygame==2.6.1
