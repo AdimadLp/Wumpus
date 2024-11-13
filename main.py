@@ -1,3 +1,4 @@
+# FILE: main.py
 import pygame
 from pygame.locals import *
 from environment import Environment
@@ -12,10 +13,6 @@ GRID_SIZE = 10
 CELL_SIZE = WIDTH // GRID_SIZE
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Wumpus World")
-
-# Load images for the game elements
-agent_img = pygame.Surface((CELL_SIZE, CELL_SIZE))
-agent_img.fill((0, 255, 0))  # Green square for the agent
 
 
 # Define the game class
@@ -33,7 +30,7 @@ class WumpusGame:
 
     def draw_agent(self):
         x, y = self.agent.position
-        screen.blit(agent_img, (x * CELL_SIZE, y * CELL_SIZE))
+        screen.blit(self.agent.image, (x * CELL_SIZE, y * CELL_SIZE))
 
     def run(self):
         clock = pygame.time.Clock()

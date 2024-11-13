@@ -24,15 +24,3 @@ class Environment:
     def display(self):
         for row in self.grid:
             print(" ".join(row))
-
-
-class Wumpus:
-    pass
-
-
-class Pit:
-    pass
-
-
-class Gold:
-    pass

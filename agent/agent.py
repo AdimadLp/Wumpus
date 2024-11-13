@@ -1,4 +1,5 @@
-# FILE: agent.py
+# FILE: agent/agent.py
+import pygame
 
 
 class Agent:
@@ -7,6 +8,8 @@ class Agent:
         self.position = (0, 0)
         self.has_gold = False
         self.enabled = False  # Flag to determine if the agent is enabled
+        self.image = pygame.Surface((environment.cell_size, environment.cell_size))
+        self.image.fill((0, 255, 0))  # Green square for the agent
 
     def perceive(self):
         # Logic for the agent to perceive its surroundings

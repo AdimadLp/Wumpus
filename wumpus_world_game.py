@@ -1,7 +1,7 @@
 # FILE: wumpus_world_game.py
 
-from environment import Environment
-from agent import Agent
+from environment.environment import Environment
+from agent.agent import Agent
 
 
 class WumpusWorldGame:
