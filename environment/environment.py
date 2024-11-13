@@ -2,8 +2,9 @@
 
 
 class Environment:
-    def __init__(self, size):
+    def __init__(self, size, cell_size):
         self.size = size
+        self.cell_size = cell_size
         self.grid = [["" for _ in range(size)] for _ in range(size)]
         self.place_wumpus()
         self.place_pits()

@@ -18,7 +18,7 @@ pygame.display.set_caption("Wumpus World")
 # Define the game class
 class WumpusGame:
     def __init__(self):
-        self.environment = Environment(size=GRID_SIZE)
+        self.environment = Environment(size=GRID_SIZE, cell_size=CELL_SIZE)
         self.agent = Agent(self.environment)
         self.running = True
 
@@ -40,14 +40,19 @@ class WumpusGame:
                     self.running = False
                 elif event.type == KEYDOWN:
                     if not self.agent.enabled:
-                        if event.key == K_UP:
-                            self.agent.move("up")
-                        elif event.key == K_DOWN:
-                            self.agent.move("down")
-                        elif event.key == K_LEFT:
-                            self.agent.move("left")
-                        elif event.key == K_RIGHT:
-                            self.agent.move("right")
+                        try:
+                            if event.key == K_UP:
+                                self.agent.move("up")
+                            elif event.key == K_DOWN:
+                                self.agent.move("down")
+                            elif event.key == K_LEFT:
+                                self.agent.move("left")
+                            elif event.key == K_RIGHT:
+                                self.agent.move("right")
+                        except IndexError as e:
+                            print(e)
+                        except ValueError as e:
+                            print(e)
 
             screen.fill((0, 0, 0))
             self.draw_grid()

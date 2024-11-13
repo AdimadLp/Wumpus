@@ -26,12 +26,24 @@ class Agent:
     def move(self, direction):
         x, y = self.position
         if direction == "right":
-            self.position = (x + 1, y)
+            if x < self.environment.size - 1:
+                self.position = (x + 1, y)
+            else:
+                raise IndexError("Agent would go out of the environment")
         elif direction == "left":
-            self.position = (x - 1, y)
+            if x > 0:
+                self.position = (x - 1, y)
+            else:
+                raise IndexError("Agent would go out of the environment")
         elif direction == "up":
-            self.position = (x, y - 1)
+            if y > 0:
+                self.position = (x, y - 1)
+            else:
+                raise IndexError("Agent would go out of the environment")
         elif direction == "down":
-            self.position = (x, y + 1)
+            if y < self.environment.size - 1:
+                self.position = (x, y + 1)
+            else:
+                raise IndexError("Agent would go out of the environment")
         else:
             raise ValueError("Invalid direction")
