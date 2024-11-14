@@ -62,7 +62,9 @@ class WumpusGame:
         for x in range(self.environment.size):
             for y in range(self.environment.size):
                 cell_content = self.environment.grid[x][y]
-                if cell_content == "W":
+                if cell_content.entity is None:
+                    continue
+                if cell_content.entity.type == "Wumpus":
                     image = self.wumpus_image
                 elif cell_content == "P":
                     image = self.pit_image
@@ -81,7 +83,7 @@ class WumpusGame:
                 if event.type == QUIT:
                     self.running = False
                 elif event.type == KEYDOWN:
-                    if not self.agent.enabled:
+                    if not self.agent.auto_mode:
                         try:
                             if event.key == K_UP:
                                 self.agent.move("up")
@@ -98,7 +100,7 @@ class WumpusGame:
                     self.key_hold_time = pygame.time.get_ticks()
 
             keys = pygame.key.get_pressed()
-            if not self.agent.enabled:
+            if not self.agent.auto_mode:
                 current_time = pygame.time.get_ticks()
                 if current_time - self.key_hold_time > self.key_hold_threshold:
                     try:

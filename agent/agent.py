@@ -1,15 +1,22 @@
 # FILE: agent/agent.py
 
+
 class Agent:
     def __init__(self, environment):
         self.environment = environment
         self.position = (0, 0)
-        self.has_gold = False
-        self.enabled = False  # Flag to determine if the agent is enabled
+        self.score = 0
+        self.auto_mode = False
 
     def perceive(self):
         # Logic for the agent to perceive its surroundings
-        pass
+        x, y = self.position
+        field = self.environment.grid[x][y]
+        if field.perceptions:
+            print("Agent perceives:", field.perceptions)
+            return field.perceptions
+
+        return []
 
     def decide(self):
         # Logic for the agent to make decisions based on perceptions
@@ -45,3 +52,5 @@ class Agent:
             self.position = (x, y - 1)
         elif direction == "down":
             self.position = (x, y + 1)
+
+        self.perceive()
