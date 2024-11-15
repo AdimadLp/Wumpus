@@ -3,6 +3,9 @@ import pygame
 from pygame.locals import *
 from environment import Environment
 from agent import Agent
+import asyncio # Necessary for pygbag
+
+# Run pygbag main.py to play the game in the browser
 
 # Initialize Pygame
 pygame.init()
@@ -76,7 +79,7 @@ class WumpusGame:
                 draw_x, draw_y = calculate_draw_position(x, y, image)
                 screen.blit(image, (draw_x, draw_y))
 
-    def run(self):
+    async def run(self):
         clock = pygame.time.Clock()
         while self.running:
             for event in pygame.event.get():
@@ -123,6 +126,7 @@ class WumpusGame:
             self.draw_agent()
             pygame.display.flip()
             clock.tick(30)
+            await asyncio.sleep(0)
 
         pygame.quit()
 
@@ -130,4 +134,4 @@ class WumpusGame:
 # Run the game
 if __name__ == "__main__":
     game = WumpusGame()
-    game.run()
+    asyncio.run(game.run())

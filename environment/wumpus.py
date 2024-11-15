@@ -5,7 +5,7 @@ class Wumpus:
     def __init__(self):
         self.type = "Wumpus"
         self.percept = "stench"
-        self.perception_multiplier = 2
+        self.perception_multiplier = 1
         self.perception_fields = []
         self.alive = True
         self.reward = 1000
