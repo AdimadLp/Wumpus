@@ -11,7 +11,7 @@ import asyncio # Necessary for pygbag
 pygame.init()
 
 # Set up the display
-WIDTH, HEIGHT = 800, 800
+WIDTH, HEIGHT = 1200, 1200
 GRID_SIZE = 10
 CELL_SIZE = WIDTH // GRID_SIZE
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -34,21 +34,30 @@ def calculate_draw_position(x, y, image):
     return draw_x, draw_y
 
 
+
 # Define the game class
 class WumpusGame:
     def __init__(self):
         # Load all images
-        self.agent_image = load_and_scale_image("src/agent.png", CELL_SIZE)
-        self.wumpus_image = load_and_scale_image("src/wumpus_discord.png", CELL_SIZE)
-        # self.pit_image = load_and_scale_image('src/pit.png', CELL_SIZE)
-        # self.gold_image = load_and_scale_image('src/gold.png', CELL_SIZE)
+        self.load_assets()
 
         # Initialize the environment and agent
         self.environment = Environment(size=GRID_SIZE)
         self.agent = Agent(self.environment)
         self.running = True
         self.key_hold_time = 0
-        self.key_hold_threshold = 500  # milliseconds
+        self.key_hold_threshold = 100  # milliseconds
+
+    def load_assets(self):
+        self.agent_images = {
+            "up": load_and_scale_image("src/back.png", CELL_SIZE),
+            "down": load_and_scale_image("src/front.png", CELL_SIZE),
+            "left": load_and_scale_image("src/left.png", CELL_SIZE),
+            "right": load_and_scale_image("src/right.png", CELL_SIZE)
+        }
+        self.wumpus_image = load_and_scale_image("src/wumpus.png", CELL_SIZE)
+        # pit_image = load_and_scale_image('src/pit.png', CELL_SIZE)
+        # gold_image = load_and_scale_image('src/gold.png', CELL_SIZE)
 
     def draw_grid(self):
         for x in range(GRID_SIZE):
@@ -58,8 +67,9 @@ class WumpusGame:
 
     def draw_agent(self):
         x, y = self.agent.position
-        draw_x, draw_y = calculate_draw_position(x, y, self.agent_image)
-        screen.blit(self.agent_image, (draw_x, draw_y))
+        agent_image = self.agent_images[self.agent.direction]
+        draw_x, draw_y = calculate_draw_position(x, y, agent_image)
+        screen.blit(agent_image, (draw_x, draw_y))
 
     def draw_environment(self):
         for x in range(self.environment.size):
@@ -87,38 +97,71 @@ class WumpusGame:
                     self.running = False
                 elif event.type == KEYDOWN:
                     if not self.agent.auto_mode:
-                        try:
-                            if event.key == K_UP:
-                                self.agent.move("up")
-                            elif event.key == K_DOWN:
-                                self.agent.move("down")
-                            elif event.key == K_LEFT:
-                                self.agent.move("left")
-                            elif event.key == K_RIGHT:
-                                self.agent.move("right")
-                        except IndexError as e:
-                            print(e)
-                        except ValueError as e:
-                            print(e)
+                        if event.key == K_UP:
+                            if self.agent.direction == "up":
+                                try:
+                                    self.agent.move("up")
+                                except (IndexError, ValueError) as e:
+                                    print(e)
+                            self.agent.direction = "up"
+                        elif event.key == K_DOWN:
+                            if self.agent.direction == "down":
+                                try:
+                                    self.agent.move("down")
+                                except (IndexError, ValueError) as e:
+                                    print(e)
+                            self.agent.direction = "down"
+                        elif event.key == K_LEFT:
+                            if self.agent.direction == "left":
+                                try:
+                                    self.agent.move("left")
+                                except (IndexError, ValueError) as e:
+                                    print(e)
+                            self.agent.direction = "left"
+                        elif event.key == K_RIGHT:
+                            if self.agent.direction == "right":
+                                try:
+                                    self.agent.move("right")
+                                except (IndexError, ValueError) as e:
+                                    print(e)
+                            self.agent.direction = "right"
                     self.key_hold_time = pygame.time.get_ticks()
 
             keys = pygame.key.get_pressed()
-            if not self.agent.auto_mode:
-                current_time = pygame.time.get_ticks()
-                if current_time - self.key_hold_time > self.key_hold_threshold:
-                    try:
-                        if keys[K_UP]:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.key_hold_time > self.key_hold_threshold:
+                if keys[K_UP]:
+                    if self.agent.direction == "up":
+                        try:
                             self.agent.move("up")
-                        if keys[K_DOWN]:
+                        except (IndexError, ValueError) as e:
+                            print(e)
+                    self.agent.direction = "up"
+                    self.key_hold_time = current_time
+                elif keys[K_DOWN]:
+                    if self.agent.direction == "down":
+                        try:
                             self.agent.move("down")
-                        if keys[K_LEFT]:
+                        except (IndexError, ValueError) as e:
+                            print(e)
+                    self.agent.direction = "down"
+                    self.key_hold_time = current_time
+                elif keys[K_LEFT]:
+                    if self.agent.direction == "left":
+                        try:
                             self.agent.move("left")
-                        if keys[K_RIGHT]:
+                        except (IndexError, ValueError) as e:
+                            print(e)
+                    self.agent.direction = "left"
+                    self.key_hold_time = current_time
+                elif keys[K_RIGHT]:
+                    if self.agent.direction == "right":
+                        try:
                             self.agent.move("right")
-                    except IndexError as e:
-                        print(e)
-                    except ValueError as e:
-                        print(e)
+                        except (IndexError, ValueError) as e:
+                            print(e)
+                    self.agent.direction = "right"
+                    self.key_hold_time = current_time
 
             screen.fill((0, 0, 0))
             self.draw_grid()

@@ -6,3 +6,6 @@ class Field:
         self.entity = entity
         self.visible = False
         self.perceptions = []
+
+    def reveal(self):
+        self.visible = True

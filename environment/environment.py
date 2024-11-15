@@ -58,6 +58,7 @@ class Environment:
         field = self.grid[x][y]
         if field.entity is None:
             field.entity = Wumpus()
+            field.entity.position = (x, y)
             perception_fields = neumann_neighborhood(
                 x, y, self.size, field.entity.perception_multiplier
             )
@@ -73,3 +74,8 @@ class Environment:
     def place_gold(self, x, y):
         if self.grid[x][y].entity is None:
             self.grid[x][y].entity = Gold()
+
+    def remove_entity(self, x, y):
+        self.grid[x][y].entity = None
+        for px, py in self.grid[x][y].entity.perception_fields:
+            self.grid[px][py].perceptions.remove(self.grid[x][y].entity.percept)

@@ -5,9 +5,10 @@ class Wumpus:
     def __init__(self):
         self.type = "Wumpus"
         self.percept = "stench"
+        self.position = None
+        self.neighborhood = "neumann"
         self.perception_multiplier = 1
         self.perception_fields = []
-        self.alive = True
         self.reward = 1000
 
     def __repr__(self):
@@ -17,5 +18,5 @@ class Wumpus:
         self.perception_fields = fields
 
     def die(self):
-        self.alive = False
+        
         return self.reward
