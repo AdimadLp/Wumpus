@@ -70,7 +70,7 @@ class Agent:
 
         # Check if the new position has a Wumpus
         if self.check_for_wumpus(new_position):
-            return
+            self.alive = False
 
         self.position = new_position
         self.perceive()

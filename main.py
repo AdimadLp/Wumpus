@@ -66,10 +66,11 @@ class WumpusGame:
                 pygame.draw.rect(screen, (200, 200, 200), rect, 1)
 
     def draw_agent(self):
-        x, y = self.agent.position
-        agent_image = self.agent_images[self.agent.direction]
-        draw_x, draw_y = calculate_draw_position(x, y, agent_image)
-        screen.blit(agent_image, (draw_x, draw_y))
+        if self.agent.alive == True:
+            x, y = self.agent.position
+            agent_image = self.agent_images[self.agent.direction]
+            draw_x, draw_y = calculate_draw_position(x, y, agent_image)
+            screen.blit(agent_image, (draw_x, draw_y))
 
     def draw_environment(self):
         for x in range(self.environment.size):
