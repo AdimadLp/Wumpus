@@ -10,6 +10,7 @@ class Wumpus:
         self.perception_multiplier = 1
         self.perception_fields = []
         self.reward = 1000
+        self.alive = True
 
     def __repr__(self):
         return "W"
@@ -18,5 +19,4 @@ class Wumpus:
         self.perception_fields = fields
 
     def die(self):
-        
         return self.reward

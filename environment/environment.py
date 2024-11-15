@@ -75,7 +75,8 @@ class Environment:
         if self.grid[x][y].entity is None:
             self.grid[x][y].entity = Gold()
 
-    def remove_entity(self, x, y):
-        self.grid[x][y].entity = None
+    def remove_entity(self, entity):
+        x, y = entity.position
         for px, py in self.grid[x][y].entity.perception_fields:
             self.grid[px][py].perceptions.remove(self.grid[x][y].entity.percept)
+        self.grid[x][y].entity = None

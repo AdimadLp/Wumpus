@@ -50,9 +50,28 @@ class Agent:
                 return True
         return False
     
-    def attack(self, direction):
+    def attack(self):
         x, y = self.position
-        #if self.environment.grid[x][y]
+        field = self.environment.grid[x][y]
+        # Check if the field where the agent directly looks at has a Wumpus
+        if self.direction == "right" and x + 1 < self.environment.size:
+            field = self.environment.grid[x + 1][y]
+        elif self.direction == "left" and x - 1 >= 0:
+            field = self.environment.grid[x - 1][y]
+        elif self.direction == "up" and y - 1 >= 0:
+            field = self.environment.grid[x][y - 1]
+        elif self.direction == "down" and y + 1 < self.environment.size:
+            field = self.environment.grid[x][y + 1]
+        else:
+            return
+        
+        if field.entity.type == "Wumpus":
+            field.entity.die()
+            self.score += field.entity.reward
+            self.environment.remove_entity(field.entity)
+            print("Agent has killed a Wumpus!")
+            return
+
 
     def move(self, direction):
         if not self.can_move(direction):

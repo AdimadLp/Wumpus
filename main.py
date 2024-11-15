@@ -56,8 +56,8 @@ class WumpusGame:
             "right": load_and_scale_image("src/right.png", CELL_SIZE)
         }
         self.wumpus_image = load_and_scale_image("src/wumpus.png", CELL_SIZE)
-        # pit_image = load_and_scale_image('src/pit.png', CELL_SIZE)
-        # gold_image = load_and_scale_image('src/gold.png', CELL_SIZE)
+        # self.pit_image = load_and_scale_image('src/pit.png', CELL_SIZE)
+        # self.gold_image = load_and_scale_image('src/gold.png', CELL_SIZE)
 
     def draw_grid(self):
         for x in range(GRID_SIZE):
@@ -80,10 +80,10 @@ class WumpusGame:
                     continue
                 if cell_content.entity.type == "Wumpus":
                     image = self.wumpus_image
-                elif cell_content == "P":
-                    image = self.pit_image
-                elif cell_content == "G":
-                    image = self.gold_image
+                #elif cell_content == "P":
+                #    image = self.pit_image
+                #elif cell_content == "G":
+                #    image = self.gold_image
                 else:
                     continue
 
@@ -126,6 +126,8 @@ class WumpusGame:
                                 except (IndexError, ValueError) as e:
                                     print(e)
                             self.agent.direction = "right"
+                        elif event.key == K_SPACE:
+                            self.agent.attack()
                     self.key_hold_time = pygame.time.get_ticks()
 
             keys = pygame.key.get_pressed()
