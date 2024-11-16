@@ -49,6 +49,7 @@ class WumpusGame:
         self.key_hold_threshold = 100  # milliseconds
 
     def load_assets(self):
+        # Model created at https://hyperhuman.deemos.com/rodin
         self.agent_images = {
             "up": load_and_scale_image("src/back.png", CELL_SIZE),
             "down": load_and_scale_image("src/front.png", CELL_SIZE),
@@ -66,6 +67,7 @@ class WumpusGame:
                 pygame.draw.rect(screen, (200, 200, 200), rect, 1)
 
     def draw_agent(self):
+        # TODO: Add agent to environment
         if self.agent.alive == True:
             x, y = self.agent.position
             agent_image = self.agent_images[self.agent.direction]
