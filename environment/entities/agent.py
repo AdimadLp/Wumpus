@@ -1,13 +1,22 @@
 # FILE: agent/agent.py
+from dataclasses import dataclass, field
+from .entity import Entity
 
-class Agent:
-    def __init__(self, environment):
-        self.environment = environment
-        self.position = (0, 0)
-        self.score = 0
-        self.auto_mode = False
-        self.alive = True  # Add an attribute to track if the agent is alive
-        self.direction = "down"  # Add agent direction attribute
+
+@dataclass
+class Agent(Entity):
+    entity_type: str = "Agent"
+    image_paths: dict = field(default_factory=lambda: {
+        "front": "src/agent/front.png",
+        "right": "src/agent/right.png",
+        "left": "src/agent/left.png",
+        "back": "src/agent/back.png",
+    })
+    reward: int = 0
+    perception_range_multiplier: int = 1
+    current_image_key: str = "front"
+    score: int = 0
+    auto_mode: bool = False
 
     def perceive(self):
         # Logic for the agent to perceive its surroundings
@@ -33,20 +42,19 @@ class Agent:
             return x < self.environment.size - 1
         elif direction == "left":
             return x > 0
-        elif direction == "up":
+        elif direction == "back":
             return y > 0
-        elif direction == "down":
+        elif direction == "front":
             return y < self.environment.size - 1
         else:
             raise ValueError("Invalid direction")
 
     def check_for_wumpus(self, position):
         x, y = position
-        field = self.environment.grid[x][y]
-        if field.entity:
-            if field.entity.type == "Wumpus":
-                print("Agent has been killed by a Wumpus!")
-                self.alive = False
+        cell = self.environment.grid[x][y]
+        if cell.entity:
+            if cell.entity.entity_type == "Wumpus":
+                self.die()
                 return True
         return False
     
@@ -58,20 +66,17 @@ class Agent:
             field = self.environment.grid[x + 1][y]
         elif self.direction == "left" and x - 1 >= 0:
             field = self.environment.grid[x - 1][y]
-        elif self.direction == "up" and y - 1 >= 0:
+        elif self.direction == "back" and y - 1 >= 0:
             field = self.environment.grid[x][y - 1]
-        elif self.direction == "down" and y + 1 < self.environment.size:
+        elif self.direction == "front" and y + 1 < self.environment.size:
             field = self.environment.grid[x][y + 1]
         else:
             return
         
-        if field.entity.type == "Wumpus":
-            field.entity.die()
-            self.score += field.entity.reward
-            self.environment.remove_entity(field.entity)
+        if field.entity and field.entity.entity_type == "Wumpus":
+            self.score += field.entity.die()
             print("Agent has killed a Wumpus!")
             return
-
 
     def move(self, direction):
         if not self.can_move(direction):
@@ -82,14 +87,19 @@ class Agent:
             new_position = (x + 1, y)
         elif direction == "left":
             new_position = (x - 1, y)
-        elif direction == "up":
+        elif direction == "back":
             new_position = (x, y - 1)
-        elif direction == "down":
+        elif direction == "front":
             new_position = (x, y + 1)
 
         # Check if the new position has a Wumpus
         if self.check_for_wumpus(new_position):
             self.alive = False
+            return
+
+        # Update the grid
+        self.environment.grid[x][y].remove_entity()
+        self.environment.grid[new_position[0]][new_position[1]].entity = self
 
         self.position = new_position
         self.perceive()
