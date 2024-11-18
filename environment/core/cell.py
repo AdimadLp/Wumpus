@@ -1,7 +1,9 @@
 class Cell:
     def __init__(self, entity=None):
         self.entity = entity
-        self.visible = False # TODO: Create images for visible and invisible cells without entity
+        self.visible = (
+            False  # TODO: Create images for visible and invisible cells without entity
+        )
         self.perceptions = []
         self.current_image = None
         self.update_image()

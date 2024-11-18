@@ -6,12 +6,14 @@ from .entity import Entity
 @dataclass
 class Agent(Entity):
     entity_type: str = "Agent"
-    image_paths: dict = field(default_factory=lambda: {
-        "front": "src/agent/front.png",
-        "right": "src/agent/right.png",
-        "left": "src/agent/left.png",
-        "back": "src/agent/back.png",
-    })
+    image_paths: dict = field(
+        default_factory=lambda: {
+            "front": "src/agent/front.png",
+            "right": "src/agent/right.png",
+            "left": "src/agent/left.png",
+            "back": "src/agent/back.png",
+        }
+    )
     reward: int = 0
     perception_range_multiplier: int = 0
     current_image_key: str = "front"
@@ -45,6 +47,13 @@ class Agent(Entity):
         # Logic for the agent to act based on decisions
         pass
 
+    def interact(self, agent):
+        print("Agent interaction with another Agent!")
+        return False
+
+    def interact_with_entity(self, entity):
+        return entity.interact(self)
+
     def get_new_position_and_check_bounds(self, direction):
         x, y = self.position
         if direction == "right":
@@ -57,12 +66,12 @@ class Agent(Entity):
             new_x, new_y = x, y + 1
         else:
             raise ValueError("Invalid direction")
-        
+
         if 0 <= new_x < self.environment.size and 0 <= new_y < self.environment.size:
             return new_x, new_y
         else:
             raise IndexError("Agent would go out of the environment")
-        
+
     def move(self, direction):
         try:
             new_position = self.get_new_position_and_check_bounds(direction)
@@ -72,16 +81,10 @@ class Agent(Entity):
 
         new_cell = self.environment.grid[new_position[0]][new_position[1]]
 
-        # Check if the new position has a Wumpus
-        if self.check_for_wumpus(new_position):
-            print("Agent has been killed by a Wumpus!")
-            new_cell.reveal()
-            return
-
-        # Check if the new position is empty
+        # Interact with the entity in the new cell
         if new_cell.entity is not None:
-            print("The new cell is not empty.")
-            return
+            if not self.interact_with_entity(new_cell.entity):
+                return  # Stop further actions if interaction returns False
 
         # Update the grid
         old_cell = self.environment.grid[self.position[0]][self.position[1]]
@@ -95,15 +98,6 @@ class Agent(Entity):
         self.position = new_position
         self.perceive()
 
-    def check_for_wumpus(self, position):
-        x, y = position
-        cell = self.environment.grid[x][y]
-        if cell.entity:
-            if cell.entity.entity_type == "Wumpus":
-                self.die()
-                return True
-        return False
-    
     def attack(self):
         x, y = self.position
         field = self.environment.grid[x][y]
@@ -118,7 +112,7 @@ class Agent(Entity):
             field = self.environment.grid[x][y + 1]
         else:
             return
-        
+
         if field.entity and field.entity.entity_type == "Wumpus":
             self.score += field.entity.die()
             print("Agent has killed a Wumpus!")
