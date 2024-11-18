@@ -29,6 +29,8 @@ class WumpusGame:
         self.key_hold_time = 0
         self.key_hold_threshold = 100  # milliseconds
 
+        # Model created at https://hyperhuman.deemos.com/rodin
+
         # Dictionary to keep track of loaded images
         self.loaded_images = {}
 
