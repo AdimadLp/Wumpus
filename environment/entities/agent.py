@@ -13,10 +13,19 @@ class Agent(Entity):
         "back": "src/agent/back.png",
     })
     reward: int = 0
-    perception_range_multiplier: int = 1
+    perception_range_multiplier: int = 0
     current_image_key: str = "front"
     score: int = 0
     auto_mode: bool = False
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.reveal_initial_cell()
+
+    def reveal_initial_cell(self):
+        x, y = self.position
+        cell = self.environment.grid[x][y]
+        cell.reveal()
 
     def perceive(self):
         # Logic for the agent to perceive its surroundings
@@ -36,18 +45,55 @@ class Agent(Entity):
         # Logic for the agent to act based on decisions
         pass
 
-    def can_move(self, direction):
+    def get_new_position_and_check_bounds(self, direction):
         x, y = self.position
         if direction == "right":
-            return x < self.environment.size - 1
+            new_x, new_y = x + 1, y
         elif direction == "left":
-            return x > 0
+            new_x, new_y = x - 1, y
         elif direction == "back":
-            return y > 0
+            new_x, new_y = x, y - 1
         elif direction == "front":
-            return y < self.environment.size - 1
+            new_x, new_y = x, y + 1
         else:
             raise ValueError("Invalid direction")
+        
+        if 0 <= new_x < self.environment.size and 0 <= new_y < self.environment.size:
+            return new_x, new_y
+        else:
+            raise IndexError("Agent would go out of the environment")
+        
+    def move(self, direction):
+        try:
+            new_position = self.get_new_position_and_check_bounds(direction)
+        except (IndexError, ValueError) as e:
+            print(e)
+            return
+
+        new_cell = self.environment.grid[new_position[0]][new_position[1]]
+
+        # Check if the new position has a Wumpus
+        if self.check_for_wumpus(new_position):
+            print("Agent has been killed by a Wumpus!")
+            new_cell.reveal()
+            return
+
+        # Check if the new position is empty
+        if new_cell.entity is not None:
+            print("The new cell is not empty.")
+            return
+
+        # Update the grid
+        old_cell = self.environment.grid[self.position[0]][self.position[1]]
+        old_cell.remove_entity()
+        new_cell.set_entity(self)
+
+        # Reveal the new cell if it is not visible
+        if not new_cell.visible:
+            new_cell.reveal()
+
+        self.position = new_position
+        self.perceive()
 
     def check_for_wumpus(self, position):
         x, y = position
@@ -77,29 +123,3 @@ class Agent(Entity):
             self.score += field.entity.die()
             print("Agent has killed a Wumpus!")
             return
-
-    def move(self, direction):
-        if not self.can_move(direction):
-            raise IndexError("Agent would go out of the environment")
-
-        x, y = self.position
-        if direction == "right":
-            new_position = (x + 1, y)
-        elif direction == "left":
-            new_position = (x - 1, y)
-        elif direction == "back":
-            new_position = (x, y - 1)
-        elif direction == "front":
-            new_position = (x, y + 1)
-
-        # Check if the new position has a Wumpus
-        if self.check_for_wumpus(new_position):
-            self.alive = False
-            return
-
-        # Update the grid
-        self.environment.grid[x][y].remove_entity()
-        self.environment.grid[new_position[0]][new_position[1]].entity = self
-
-        self.position = new_position
-        self.perceive()

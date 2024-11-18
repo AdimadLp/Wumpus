@@ -1,7 +1,7 @@
 class Cell:
     def __init__(self, entity=None):
         self.entity = entity
-        self.visible = True
+        self.visible = False
         self.perceptions = []
         self.current_image = None
         self.update_image()
