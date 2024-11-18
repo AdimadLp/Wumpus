@@ -3,18 +3,14 @@ import random
 from environment.core.cell import Cell
 from environment.entities import Wumpus, Pit, Gold, Agent
 
+
 class Environment:
     def __init__(self, size, cell_size):
         self.size = size
         self.cell_size = cell_size
         self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
         self.entities = []
-        self.entity_counts = {
-            Agent: 2,
-            Wumpus: 1,
-            Gold: 0,
-            Pit: 0
-        }
+        self.entity_counts = {Agent: 2, Wumpus: 2, Gold: 0, Pit: 0}
         self.place_entities()
 
     def generate_random_position(self):
