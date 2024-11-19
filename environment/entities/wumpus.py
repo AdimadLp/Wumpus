@@ -20,4 +20,5 @@ class Wumpus(Entity):
     def interact(self, agent):
         print("Agent has been killed by a Wumpus!")
         agent.die()
+        self.revial()
         return False

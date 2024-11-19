@@ -4,11 +4,12 @@ from helpers.image_processing import load_and_scale_image
 
 # FILE: environment/entity.py
 
+
 @dataclass
 class Entity:
     environment: object
     position: tuple
-    
+
     entity_type: str
     image_paths: dict
     reward: int
@@ -16,7 +17,7 @@ class Entity:
     perception_type: str = field(default=None)
     neighborhood: str = field(default="neumann")
     perception_range_multiplier: int = field(default=1)
-    
+
     alive: bool = field(default=True)
     images: dict = field(default_factory=dict)
     current_image_key: str = field(default=None)
@@ -26,12 +27,16 @@ class Entity:
     # Class-level cache for images
     _image_cache = {}
 
-    @property
     def die(self):
         self.alive = False
         self.environment.remove_entity(self)
         return self.reward
-    
+
+    def revial(self):
+        x, y = self.position
+        cell = self.environment.grid[x][y]
+        cell.reveal()
+
     def __post_init__(self):
         self.calculate_perception_fields()
         self.update_images()
@@ -40,8 +45,10 @@ class Entity:
         if self.entity_type not in Entity._image_cache:
             Entity._image_cache[self.entity_type] = {}
             for key, path in self.image_paths.items():
-                Entity._image_cache[self.entity_type][key] = load_and_scale_image(path, self.environment.cell_size)
-        
+                Entity._image_cache[self.entity_type][key] = load_and_scale_image(
+                    path, self.environment.cell_size
+                )
+
         self.images = Entity._image_cache[self.entity_type]
 
     def update_image_key(self, new_image_key):
@@ -56,16 +63,18 @@ class Entity:
     def calculate_perception_fields(self):
         x, y = self.position
         if self.neighborhood == "neumann":
-            fields = neumann_neighborhood(x, y, self.environment.size, self.perception_range_multiplier)
+            fields = neumann_neighborhood(
+                x, y, self.environment.size, self.perception_range_multiplier
+            )
         elif self.neighborhood == "moore":
-            fields = moore_neighborhood(x, y, self.environment.size, self.perception_range_multiplier)
+            fields = moore_neighborhood(
+                x, y, self.environment.size, self.perception_range_multiplier
+            )
         else:
             fields = None
 
         if fields is not None:
             self.perception_fields = fields
 
-    def die(self):
-        self.alive = False
-        self.environment.remove_entity(self)
-        return self.reward
+    def interact(self, agent, interaction_type="neutral"):
+        pass

@@ -3,6 +3,8 @@ import pygame
 from pygame.locals import *
 from environment.core.environment import Environment
 import asyncio  # Necessary for pygbag
+import csv
+from datetime import datetime
 
 # Run pygbag main.py to play the game in the browser
 
@@ -29,10 +31,13 @@ class WumpusGame:
         self.key_hold_time = 0
         self.key_hold_threshold = 100  # milliseconds
 
-        # Model created at https://hyperhuman.deemos.com/rodin
-
         # Dictionary to keep track of loaded images
         self.loaded_images = {}
+
+        # Model created at https://hyperhuman.deemos.com/rodin
+
+        # List to keep track of all agents and their scores
+        self.all_agents = []
 
     def get_next_agent(self):
         try:
@@ -68,11 +73,42 @@ class WumpusGame:
                     draw_y = y * CELL_SIZE + (CELL_SIZE - image.get_height()) // 2
                     screen.blit(image, (draw_x, draw_y))
 
+        # Draw the scoreboard
+        self.draw_scoreboard()
+
         # Update the display once
         pygame.display.flip()
 
+    def draw_scoreboard(self):
+        font = pygame.font.Font(None, 36)
+        y_offset = 10
+
+        # Draw the header
+        header_text = "Top 3 Agent Scores"
+        header_surface = font.render(header_text, True, (255, 255, 255))
+        screen.blit(header_surface, (10, y_offset))
+        y_offset += 40
+
+        # Get the top 3 agents by score
+        top_agents = sorted(
+            [
+                agent
+                for agent in self.environment.entities
+                if agent.entity_type == "Agent"
+            ],
+            key=lambda a: a.score,
+            reverse=True,
+        )[:3]
+
+        for agent in top_agents:
+            score_text = f"Agent {agent.position}: {agent.score}"
+            text_surface = font.render(score_text, True, (255, 255, 255))
+            screen.blit(text_surface, (10, y_offset))
+            y_offset += 40
+
     def check_agent_status(self):
         if self.agent and not self.agent.alive:
+            self.all_agents.append(self.agent)  # Save the agent before removing
             self.agent = self.get_next_agent()
 
     def handle_key_event(self, key):
@@ -121,7 +157,36 @@ class WumpusGame:
             clock.tick(30)
             await asyncio.sleep(0)
 
+        self.save_scores_to_csv()
         pygame.quit()
+
+    def save_scores_to_csv(self):
+        # Add remaining agents to the list
+        self.all_agents.extend(
+            agent for agent in self.environment.entities if agent.entity_type == "Agent"
+        )
+
+        # Get the current timestamp
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Define the filename for the scoreboard
+        filename = "scoreboard.csv"
+
+        # Check if the file exists to determine if we need to write the header
+        file_exists = False
+        try:
+            with open(filename, mode="r") as file:
+                file_exists = True
+        except FileNotFoundError:
+            pass
+
+        # Write the scores to the CSV file
+        with open(filename, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            if not file_exists:
+                writer.writerow(["Timestamp", "Agent Position", "Score"])
+            for agent in self.all_agents:
+                writer.writerow([timestamp, agent.position, agent.score])
 
 
 # Run the game

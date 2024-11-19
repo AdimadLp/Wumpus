@@ -47,9 +47,13 @@ class Agent(Entity):
         # Logic for the agent to act based on decisions
         pass
 
-    def interact(self, agent):
-        print("Agent interaction with another Agent!")
-        return False
+    def interact(self, agent, interaction_type="neutral"):
+        if interaction_type == "neutral":
+            print("There is already an Agent in this cell!")
+            return False
+        elif interaction_type == "attack":
+            print("Agent attacking another Agent!")
+            return False
 
     def interact_with_entity(self, entity):
         return entity.interact(self)

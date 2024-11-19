@@ -10,7 +10,7 @@ class Environment:
         self.cell_size = cell_size
         self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
         self.entities = []
-        self.entity_counts = {Agent: 2, Wumpus: 2, Gold: 1, Pit: 0}
+        self.entity_counts = {Agent: 6, Wumpus: 10, Gold: 50, Pit: 0}
         self.place_entities()
 
     def generate_random_position(self):
