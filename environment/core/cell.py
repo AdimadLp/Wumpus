@@ -30,5 +30,9 @@ class Cell:
         self.update_image()
 
     def interact(self, entity, interaction_type="neutral"):
-        return False # Entity that that receives the interaction will not be removed
-
+        if self.entity:
+            self.entity.interaction_beaviour(entity, interaction_type)
+            return True
+        else:
+            # No entity to interact with
+            return False

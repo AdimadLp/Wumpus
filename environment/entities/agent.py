@@ -46,7 +46,7 @@ class Agent(Entity):
 
     def act(self):
         decision = self.decide()
-        
+
         if decision == "move_front":
             self.move("front")
         elif decision == "move_back":
@@ -64,16 +64,13 @@ class Agent(Entity):
         else:
             print("Invalid decision")
 
-    def interact(self, agent, interaction_type="neutral"):
+    def interaction_beaviour(self, agent, interaction_type="neutral"):
         if interaction_type == "neutral":
-            print("There is already an Agent in this cell!")
-            return False
-        elif interaction_type == "attack":
-            print("Agent attacking another Agent!")
-            return False
+            print("Agent has interacted with another agent!")
+            return
 
-    def interact_with_entity(self, entity):
-        return entity.interact(self)
+    def interact_with_cell(self, cell):
+        return cell.interact(self)
 
     def get_new_position_and_check_bounds(self, direction):
         x, y = self.position
@@ -106,61 +103,59 @@ class Agent(Entity):
         if not new_cell.visible:
             new_cell.reveal()
 
-        # Interact with the entity in the new cell
-        if new_cell.entity is not None:
-            if not self.interact_with_entity(new_cell.entity):
-                return
+        # Check if the new cell is occupied by another agent
+        if new_cell.entity and new_cell.entity.entity_type == "Agent":
+            return
 
-        # Update the grid
-        old_cell = self.environment.grid[self.position[0]][self.position[1]]
-        old_cell.remove_entity()
+        self.interact_with_cell(new_cell)
 
         if new_cell.entity is None:
+            # Update the grid
+            old_cell = self.environment.grid[self.position[0]][self.position[1]]
+            old_cell.remove_entity()
             new_cell.set_entity(self)
             self.position = new_position
             self.perceive()
+
+    def get_facing_neighbour_cell(self):
+        x, y = self.position
+        if self.direction == "right" and x + 1 < self.environment.size:
+            return self.environment.grid[x + 1][y]
+        elif self.direction == "left" and x - 1 >= 0:
+            return self.environment.grid[x - 1][y]
+        elif self.direction == "back" and y - 1 >= 0:
+            return self.environment.grid[x][y - 1]
+        elif self.direction == "front" and y + 1 < self.environment.size:
+            return self.environment.grid[x][y + 1]
+        else:
+            return None
 
     def attack(self):
         if self.missed_shots_left == 0:
             print("Agent has no more arrows!")
             return
-        
-        x, y = self.position
-        # Check if the field where the agent directly looks at has a Wumpus
-        if self.direction == "right" and x + 1 < self.environment.size:
-            cell = self.environment.grid[x + 1][y]
-        elif self.direction == "left" and x - 1 >= 0:
-            cell = self.environment.grid[x - 1][y]
-        elif self.direction == "back" and y - 1 >= 0:
-            cell = self.environment.grid[x][y - 1]
-        elif self.direction == "front" and y + 1 < self.environment.size:
-            cell = self.environment.grid[x][y + 1]
-        else:
+
+        neighbour_cell = self.get_facing_neighbour_cell()
+
+        if not neighbour_cell.interact(self, interaction_type="attack"):
+            print("Agent missed the shot!")
+            self.missed_shots_left -= 1
             return
 
-        cell.interact(self, interaction_type="attack")
-
-
-        if cell.entity and cell.entity.entity_type == "Wumpus":
+    """if cell.entity and cell.entity.entity_type == "Wumpus":
             self.score += cell.entity.reward
             cell.entity.die()
             print("Agent has killed a Wumpus!")
             return
         else:
-            print("Agent missed the shot!")
-            self.missed_shots_left -= 1
-            return
+
+            return"""
 
     def collect(self):
-        x, y = self.position
-        cell = self.environment.grid[x][y]
-        if cell.entity and cell.entity.entity_type == "Gold":
-            self.score += cell.entity.reward
-            cell.entity.collect()
-            print("Agent has collected the Gold!")
-            return
-        else:
-            print("There is no Gold in this cell!")
+        neighbour_cell = self.get_facing_neighbour_cell()
+
+        if not neighbour_cell.interact(self, interaction_type="collect"):
+            print("Agent cannot collect from this cell!")
             return
 
     def communicate(self):

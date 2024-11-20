@@ -128,6 +128,8 @@ class WumpusGame:
             self.agent.change_direction(direction)
         elif key == K_SPACE:
             self.agent.attack()
+        elif key == K_RETURN:
+            self.agent.collect()
 
     async def run(self):
         clock = pygame.time.Clock()

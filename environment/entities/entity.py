@@ -74,3 +74,6 @@ class Entity:
 
         if fields is not None:
             self.perception_fields = fields
+
+    def interaction_beaviour(self, entity, interaction_type):
+        pass

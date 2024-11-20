@@ -17,14 +17,13 @@ class Wumpus(Entity):
     neighborhood: str = "neumann"
     perception_range_multiplier: int = 1
 
-    def interact(self, agent, interaction_type="neutral"):
+    def interaction_beaviour(self, agent, interaction_type):
         if interaction_type == "neutral":
             print("Agent has been killed by a Wumpus!")
             agent.die()
             self.revial()
-            return False
+
         elif interaction_type == "attack":
-            print("Agent attacking a Wumpus!")
+            print("Agent killed a Wumpus!")
             agent.score += self.reward
             self.die()
-            return False

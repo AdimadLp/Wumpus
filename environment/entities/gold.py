@@ -15,5 +15,8 @@ class Gold(Entity):
     )
     current_image_key: str = "front"
 
-    def interact(self, agent):
-        return False
+    def interaction_beaviour(self, agent, interaction_type):
+        if interaction_type == "collect":
+            print("Agent collected a gold!")
+            agent.score += self.reward
+            self.die()
