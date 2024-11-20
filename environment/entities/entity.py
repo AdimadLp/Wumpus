@@ -30,7 +30,6 @@ class Entity:
     def die(self):
         self.alive = False
         self.environment.remove_entity(self)
-        return self.reward
 
     def revial(self):
         x, y = self.position
@@ -75,6 +74,3 @@ class Entity:
 
         if fields is not None:
             self.perception_fields = fields
-
-    def interact(self, agent, interaction_type="neutral"):
-        pass

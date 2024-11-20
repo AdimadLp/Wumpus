@@ -19,6 +19,7 @@ class Agent(Entity):
     current_image_key: str = "front"
     score: int = 0
     auto_mode: bool = False
+    missed_shots_left: int = 2
 
     def __post_init__(self):
         super().__post_init__()
@@ -44,8 +45,24 @@ class Agent(Entity):
         pass
 
     def act(self):
-        # Logic for the agent to act based on decisions
-        pass
+        decision = self.decide()
+        
+        if decision == "move_front":
+            self.move("front")
+        elif decision == "move_back":
+            self.move("back")
+        elif decision == "move_left":
+            self.move("left")
+        elif decision == "move_right":
+            self.move("right")
+        elif decision == "attack":
+            self.attack()
+        elif decision == "collect":
+            self.collect()
+        elif decision == "communicate":
+            self.communicate()
+        else:
+            print("Invalid decision")
 
     def interact(self, agent, interaction_type="neutral"):
         if interaction_type == "neutral":
@@ -85,39 +102,66 @@ class Agent(Entity):
 
         new_cell = self.environment.grid[new_position[0]][new_position[1]]
 
-        # Interact with the entity in the new cell
-        if new_cell.entity is not None:
-            if not self.interact_with_entity(new_cell.entity):
-                return  # Stop further actions if interaction returns False
-
-        # Update the grid
-        old_cell = self.environment.grid[self.position[0]][self.position[1]]
-        old_cell.remove_entity()
-        new_cell.set_entity(self)
-
         # Reveal the new cell if it is not visible
         if not new_cell.visible:
             new_cell.reveal()
 
-        self.position = new_position
-        self.perceive()
+        # Interact with the entity in the new cell
+        if new_cell.entity is not None:
+            if not self.interact_with_entity(new_cell.entity):
+                return
+
+        # Update the grid
+        old_cell = self.environment.grid[self.position[0]][self.position[1]]
+        old_cell.remove_entity()
+
+        if new_cell.entity is None:
+            new_cell.set_entity(self)
+            self.position = new_position
+            self.perceive()
 
     def attack(self):
+        if self.missed_shots_left == 0:
+            print("Agent has no more arrows!")
+            return
+        
         x, y = self.position
-        field = self.environment.grid[x][y]
         # Check if the field where the agent directly looks at has a Wumpus
         if self.direction == "right" and x + 1 < self.environment.size:
-            field = self.environment.grid[x + 1][y]
+            cell = self.environment.grid[x + 1][y]
         elif self.direction == "left" and x - 1 >= 0:
-            field = self.environment.grid[x - 1][y]
+            cell = self.environment.grid[x - 1][y]
         elif self.direction == "back" and y - 1 >= 0:
-            field = self.environment.grid[x][y - 1]
+            cell = self.environment.grid[x][y - 1]
         elif self.direction == "front" and y + 1 < self.environment.size:
-            field = self.environment.grid[x][y + 1]
+            cell = self.environment.grid[x][y + 1]
         else:
             return
 
-        if field.entity and field.entity.entity_type == "Wumpus":
-            self.score += field.entity.die()
+        cell.interact(self, interaction_type="attack")
+
+
+        if cell.entity and cell.entity.entity_type == "Wumpus":
+            self.score += cell.entity.reward
+            cell.entity.die()
             print("Agent has killed a Wumpus!")
             return
+        else:
+            print("Agent missed the shot!")
+            self.missed_shots_left -= 1
+            return
+
+    def collect(self):
+        x, y = self.position
+        cell = self.environment.grid[x][y]
+        if cell.entity and cell.entity.entity_type == "Gold":
+            self.score += cell.entity.reward
+            cell.entity.collect()
+            print("Agent has collected the Gold!")
+            return
+        else:
+            print("There is no Gold in this cell!")
+            return
+
+    def communicate(self):
+        pass

@@ -16,6 +16,4 @@ class Gold(Entity):
     current_image_key: str = "front"
 
     def interact(self, agent):
-        agent.score += self.die()
-        print("Agent has collected the Gold!")
-        return True
+        return False

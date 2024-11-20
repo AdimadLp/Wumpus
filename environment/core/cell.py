@@ -28,3 +28,7 @@ class Cell:
 
     def entity_image_changed(self):
         self.update_image()
+
+    def interact(self, entity, interaction_type="neutral"):
+        return False # Entity that that receives the interaction will not be removed
+
