@@ -27,8 +27,7 @@ class Agent(Entity):
 
     def reveal_initial_cell(self):
         x, y = self.position
-        cell = self.environment.grid[x][y]
-        cell.reveal()
+        self.environment.grid[x][y].reveal()
 
     def perceive(self):
         # Logic for the agent to perceive its surroundings
@@ -37,7 +36,6 @@ class Agent(Entity):
         if field.perceptions:
             print("Agent perceives:", field.perceptions)
             return field.perceptions
-
         return []
 
     def decide(self):
@@ -46,50 +44,38 @@ class Agent(Entity):
 
     def act(self):
         decision = self.decide()
-
-        if decision == "move_front":
-            self.move("front")
-        elif decision == "move_back":
-            self.move("back")
-        elif decision == "move_left":
-            self.move("left")
-        elif decision == "move_right":
-            self.move("right")
-        elif decision == "attack":
-            self.attack()
-        elif decision == "collect":
-            self.collect()
-        elif decision == "communicate":
-            self.communicate()
-        else:
-            print("Invalid decision")
+        actions = {
+            "move_front": lambda: self.move("front"),
+            "move_back": lambda: self.move("back"),
+            "move_left": lambda: self.move("left"),
+            "move_right": lambda: self.move("right"),
+            "attack": self.attack,
+            "collect": self.collect,
+            "communicate": self.communicate,
+        }
+        actions.get(decision, lambda: print("Invalid decision"))()
 
     def interaction_beaviour(self, agent, interaction_type="neutral"):
         if interaction_type == "neutral":
             print("Agent has interacted with another agent!")
-            return
-
-    def interact_with_cell(self, cell):
-        return cell.interact(self)
 
     def get_new_position_and_check_bounds(self, direction):
         x, y = self.position
-        if direction == "right":
-            new_x, new_y = x + 1, y
-        elif direction == "left":
-            new_x, new_y = x - 1, y
-        elif direction == "back":
-            new_x, new_y = x, y - 1
-        elif direction == "front":
-            new_x, new_y = x, y + 1
-        else:
+        directions = {
+            "right": (x + 1, y),
+            "left": (x - 1, y),
+            "back": (x, y - 1),
+            "front": (x, y + 1),
+        }
+        new_x, new_y = directions.get(direction, (None, None))
+        if new_x is None or new_y is None:
             raise ValueError("Invalid direction")
 
         if 0 <= new_x < self.environment.size and 0 <= new_y < self.environment.size:
             return new_x, new_y
         else:
             raise IndexError("Agent would go out of the environment")
-
+    
     def move(self, direction):
         try:
             new_position = self.get_new_position_and_check_bounds(direction)
@@ -107,7 +93,7 @@ class Agent(Entity):
         if new_cell.entity and new_cell.entity.entity_type == "Agent":
             return
 
-        self.interact_with_cell(new_cell)
+        new_cell.interact(self)
 
         if new_cell.entity is None:
             # Update the grid
@@ -119,16 +105,16 @@ class Agent(Entity):
 
     def get_facing_neighbour_cell(self):
         x, y = self.position
-        if self.direction == "right" and x + 1 < self.environment.size:
-            return self.environment.grid[x + 1][y]
-        elif self.direction == "left" and x - 1 >= 0:
-            return self.environment.grid[x - 1][y]
-        elif self.direction == "back" and y - 1 >= 0:
-            return self.environment.grid[x][y - 1]
-        elif self.direction == "front" and y + 1 < self.environment.size:
-            return self.environment.grid[x][y + 1]
-        else:
+        directions = {
+            "right": (x + 1, y),
+            "left": (x - 1, y),
+            "back": (x, y - 1),
+            "front": (x, y + 1),
+        }
+        new_x, new_y = directions.get(self.direction, (None, None))
+        if new_x is None or new_y is None or not (0 <= new_x < self.environment.size and 0 <= new_y < self.environment.size):
             return None
+        return self.environment.grid[new_x][new_y]
 
     def attack(self):
         if self.missed_shots_left == 0:
@@ -136,27 +122,15 @@ class Agent(Entity):
             return
 
         neighbour_cell = self.get_facing_neighbour_cell()
-
         if not neighbour_cell.interact(self, interaction_type="attack"):
             print("Agent missed the shot!")
             self.missed_shots_left -= 1
-            return
-
-    """if cell.entity and cell.entity.entity_type == "Wumpus":
-            self.score += cell.entity.reward
-            cell.entity.die()
-            print("Agent has killed a Wumpus!")
-            return
-        else:
-
-            return"""
 
     def collect(self):
         neighbour_cell = self.get_facing_neighbour_cell()
 
         if not neighbour_cell.interact(self, interaction_type="collect"):
             print("Agent cannot collect from this cell!")
-            return
 
     def communicate(self):
         pass

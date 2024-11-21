@@ -10,7 +10,7 @@ class Environment:
         self.cell_size = cell_size
         self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
         self.entities = []
-        self.entity_counts = {Agent: 6, Wumpus: 10, Gold: 5, Pit: 0}
+        self.entity_counts = {Agent: 6, Wumpus: 1, Gold: 5, Pit: 10}
         self.place_entities()
 
     def generate_random_position(self):
@@ -52,3 +52,19 @@ class Environment:
             self.grid[px][py].perceptions.remove(cell.entity.perception_type)
         self.entities.remove(entity)
         cell.remove_entity()
+
+    def get_all_agents_in_range(self, position, range=None):
+        # If range is None, the range is the whole environment
+        if range is None:
+            range = self.size
+        
+        x, y = position
+        agents = []
+        for dx in range(-range, range + 1):
+            for dy in range(-range, range + 1):
+                new_x, new_y = x + dx, y + dy
+                if 0 <= new_x < self.size and 0 <= new_y < self.size:
+                    cell = self.grid[new_x][new_y]
+                    if cell.entity and cell.entity.entity_type == "Agent":
+                        agents.append(cell.entity)
+        return agents
