@@ -18,6 +18,11 @@ CELL_SIZE = WIDTH // GRID_SIZE
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Wumpus World")
 
+# Define colors
+GRID_COLOR = (200, 200, 200)
+TEXT_COLOR = (255, 255, 255)
+BACKGROUND_COLOR = (0, 0, 0)
+
 
 # Define the game class
 class WumpusGame:
@@ -40,6 +45,7 @@ class WumpusGame:
         self.all_agents = []
 
     def get_next_agent(self):
+        # Search the first agent with auto_mode set to False
         try:
             return next(
                 agent
@@ -50,21 +56,15 @@ class WumpusGame:
             print("No alive agent with auto_mode set to False found.")
             return None
 
-    def draw_grid(self):
-        for x in range(GRID_SIZE):
-            for y in range(GRID_SIZE):
-                rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                pygame.draw.rect(screen, (200, 200, 200), rect, 1)
-
     def draw_environment(self):
         # Clear the screen
-        screen.fill((0, 0, 0))
+        screen.fill(BACKGROUND_COLOR)
 
         # Draw the grid and entities in one loop
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                pygame.draw.rect(screen, (200, 200, 200), rect, 1)
+                pygame.draw.rect(screen, GRID_COLOR, rect, 1)
 
                 cell = self.environment.grid[x][y]
                 if cell.current_image is not None:
@@ -80,6 +80,7 @@ class WumpusGame:
         pygame.display.flip()
 
     def draw_scoreboard(self):
+        # Draw the scoreboard for the top 3 agents alive
         font = pygame.font.Font(None, 36)
         y_offset = 10
 
@@ -100,6 +101,7 @@ class WumpusGame:
             reverse=True,
         )[:3]
 
+        # Draw the scores
         for agent in top_agents:
             score_text = f"Agent {agent.position}: {agent.score}"
             text_surface = font.render(score_text, True, (255, 255, 255))
@@ -107,17 +109,20 @@ class WumpusGame:
             y_offset += 40
 
     def check_agent_status(self):
+        # Check if the agent is alive and if not, remove it, but save it to the list
         if self.agent and not self.agent.alive:
             self.all_agents.append(self.agent)  # Save the agent before removing
             self.agent = self.get_next_agent()
 
     def handle_key_event(self, key):
+        # Define the possible directions
         direction_map = {
             K_UP: "back",
             K_DOWN: "front",
             K_LEFT: "left",
             K_RIGHT: "right",
         }
+        # Check if the key is a valid direction
         if key in direction_map:
             direction = direction_map[key]
             if self.agent.direction == direction:
@@ -126,24 +131,32 @@ class WumpusGame:
                 except (IndexError, ValueError) as e:
                     print(e)
             self.agent.change_direction(direction)
+        # Check if the key is Space for attacking or Enter for collecting
         elif key == K_SPACE:
             self.agent.attack()
         elif key == K_RETURN:
             self.agent.collect()
 
     async def run(self):
+        # Set up the clock for event handling and frame rate
         clock = pygame.time.Clock()
+        # Main game loop
         while self.running:
+            # Get the current time and pressed keys
             current_time = pygame.time.get_ticks()
             keys = pygame.key.get_pressed()
 
+            # Handle events iteratively
             for event in pygame.event.get():
+                # Check if the event is a quit event
                 if event.type == QUIT:
                     self.running = False
-                elif event.type == KEYDOWN and self.agent and not self.agent.auto_mode:
+                # Check if the event is a key press event for a selected agent
+                elif event.type == KEYDOWN and self.agent:
                     self.handle_key_event(event.key)
                     self.key_hold_time = current_time
 
+            # Check if the agent is set and the key is held
             if (
                 self.agent
                 and current_time - self.key_hold_time > self.key_hold_threshold
@@ -175,12 +188,11 @@ class WumpusGame:
         filename = "scoreboard.csv"
 
         # Check if the file exists to determine if we need to write the header
-        file_exists = False
         try:
             with open(filename, mode="r") as file:
                 file_exists = True
         except FileNotFoundError:
-            pass
+            file_exists = False
 
         # Write the scores to the CSV file
         with open(filename, mode="a", newline="") as file:
