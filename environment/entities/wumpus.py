@@ -26,4 +26,5 @@ class Wumpus(Entity):
         elif interaction_type == "attack":
             print("Agent killed a Wumpus!")
             agent.score += self.reward
+            self.revial()
             self.die()

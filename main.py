@@ -22,6 +22,7 @@ pygame.display.set_caption("Wumpus World")
 GRID_COLOR = (200, 200, 200)
 TEXT_COLOR = (255, 255, 255)
 BACKGROUND_COLOR = (0, 0, 0)
+CELL_REVEAL_COLOR = (30, 30, 30)
 
 
 # Define the game class
@@ -55,7 +56,7 @@ class WumpusGame:
         self.agent = self.get_next_agent()
 
         self.running = True
-        self.key_hold_time = 0
+        self.key_hold_time = 0  # start time of key hold in milliseconds
         self.key_hold_threshold = 150  # milliseconds
 
         # Model created at https://hyperhuman.deemos.com/rodin
@@ -96,6 +97,11 @@ class WumpusGame:
                 pygame.draw.rect(screen, GRID_COLOR, rect, 1)
 
                 cell = self.environment.grid[x][y]
+                if cell.visible:
+                    pygame.draw.rect(
+                        screen, CELL_REVEAL_COLOR, rect
+                    )  # Fill with grey color
+
                 if cell.current_image is not None:
                     image = cell.current_image
                     draw_x = x * CELL_SIZE + (CELL_SIZE - image.get_width()) // 2
