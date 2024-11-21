@@ -26,7 +26,29 @@ BACKGROUND_COLOR = (0, 0, 0)
 
 # Define the game class
 class WumpusGame:
+    """
+    A class to represent the Wumpus World game.
+
+    Attributes:
+    -----------
+    environment : Environment
+        The game environment.
+    agent : Agent
+        The current agent in the game.
+    running : bool
+        The game running state.
+    key_hold_time : int
+        The time a key has been held down.
+    key_hold_threshold : int
+        The threshold time for key hold.
+    all_agents : list
+        List to keep track of all agents and their scores.
+    """
+
     def __init__(self):
+        """
+        Initialize the WumpusGame class.
+        """
         # Initialize the environment and agent
         self.environment = Environment(size=GRID_SIZE, cell_size=CELL_SIZE)
         # Search the first agent with auto_mode set to False
@@ -34,10 +56,7 @@ class WumpusGame:
 
         self.running = True
         self.key_hold_time = 0
-        self.key_hold_threshold = 100  # milliseconds
-
-        # Dictionary to keep track of loaded images
-        self.loaded_images = {}
+        self.key_hold_threshold = 150  # milliseconds
 
         # Model created at https://hyperhuman.deemos.com/rodin
 
@@ -45,7 +64,14 @@ class WumpusGame:
         self.all_agents = []
 
     def get_next_agent(self):
-        # Search the first agent with auto_mode set to False
+        """
+        Get the next agent with auto_mode set to False.
+
+        Returns:
+        --------
+        Agent or None
+            The next agent or None if no agent is found.
+        """
         try:
             return next(
                 agent
@@ -57,6 +83,9 @@ class WumpusGame:
             return None
 
     def draw_environment(self):
+        """
+        Draw the game environment including the grid and entities.
+        """
         # Clear the screen
         screen.fill(BACKGROUND_COLOR)
 
@@ -80,7 +109,9 @@ class WumpusGame:
         pygame.display.flip()
 
     def draw_scoreboard(self):
-        # Draw the scoreboard for the top 3 agents alive
+        """
+        Draw the scoreboard for the top 3 agents alive.
+        """
         font = pygame.font.Font(None, 36)
         y_offset = 10
 
@@ -109,12 +140,23 @@ class WumpusGame:
             y_offset += 40
 
     def check_agent_status(self):
-        # Check if the agent is alive and if not, remove it, but save it to the list
+        """
+        Check if the agent is alive and if not, remove it, but save it to the list.
+        """
         if self.agent and not self.agent.alive:
-            self.all_agents.append(self.agent)  # Save the agent before removing
+            # Save the agent before removing
+            self.all_agents.append(self.agent)
             self.agent = self.get_next_agent()
 
     def handle_key_event(self, key):
+        """
+        Handle key events for user input to move the agent.
+
+        Parameters:
+        -----------
+        key : int
+            The key code of the pressed key.
+        """
         # Define the possible directions
         direction_map = {
             K_UP: "back",
@@ -138,6 +180,9 @@ class WumpusGame:
             self.agent.collect()
 
     async def run(self):
+        """
+        Run the main game loop.
+        """
         # Set up the clock for event handling and frame rate
         clock = pygame.time.Clock()
         # Main game loop
@@ -176,6 +221,9 @@ class WumpusGame:
         pygame.quit()
 
     def save_scores_to_csv(self):
+        """
+        Save the scores of all agents to a CSV file.
+        """
         # Add remaining agents to the list
         self.all_agents.extend(
             agent for agent in self.environment.entities if agent.entity_type == "Agent"
