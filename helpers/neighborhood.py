@@ -1,4 +1,23 @@
 def moore_neighborhood(x, y, size, multiplier):
+    """
+    Calculate the Moore neighborhood for a given position.
+
+    Parameters:
+    -----------
+    x : int
+        The x-coordinate of the position.
+    y : int
+        The y-coordinate of the position.
+    size : int
+        The size of the grid.
+    multiplier : int
+        The range multiplier for the neighborhood.
+
+    Returns:
+    --------
+    list
+        A list of (x, y) tuples representing the neighboring positions.
+    """
     neighbors = []
     for dx in range(-multiplier, multiplier + 1):
         for dy in range(-multiplier, multiplier + 1):
@@ -12,6 +31,25 @@ def moore_neighborhood(x, y, size, multiplier):
 
 
 def neumann_neighborhood(x, y, size, multiplier):
+    """
+    Calculate the Neumann neighborhood for a given position.
+
+    Parameters:
+    -----------
+    x : int
+        The x-coordinate of the position.
+    y : int
+        The y-coordinate of the position.
+    size : int
+        The size of the grid.
+    multiplier : int
+        The range multiplier for the neighborhood.
+
+    Returns:
+    --------
+    list
+        A list of (x, y) tuples representing the neighboring positions.
+    """
     neighbors = []
     for dx in range(-multiplier, multiplier + 1):
         for dy in range(-multiplier, multiplier + 1):
