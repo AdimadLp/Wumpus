@@ -83,6 +83,7 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
+        # TODO: Implement the decision-making logic
         return "neutral"
 
     def act(self, decision=None):
@@ -235,4 +236,5 @@ class Agent(Entity):
         """
         Perform a communicate action.
         """
+        # TODO: Implement the communication logic
         pass
