@@ -11,7 +11,7 @@ from datetime import datetime
 # Initialize Pygame
 pygame.init()
 
-# Set up the display
+# Set up the game window
 WIDTH, HEIGHT = 1200, 1200
 GRID_SIZE = 10
 CELL_SIZE = WIDTH // GRID_SIZE
@@ -63,6 +63,10 @@ class WumpusGame:
 
         # List to keep track of all agents and their scores
         self.all_agents = []
+
+        # Interval for calling the act function (default 1 second)
+        self.act_interval = 1000  # milliseconds
+        self.last_act_time = 0  # last time the act function was called
 
     def get_next_agent(self):
         """
@@ -175,15 +179,15 @@ class WumpusGame:
             direction = direction_map[key]
             if self.agent.direction == direction:
                 try:
-                    self.agent.move(direction)
+                    self.agent.act(f"move_{direction}")
                 except (IndexError, ValueError) as e:
                     print(e)
             self.agent.change_direction(direction)
         # Check if the key is Space for attacking or Enter for collecting
         elif key == K_SPACE:
-            self.agent.attack()
+            self.agent.act("attack")
         elif key == K_RETURN:
-            self.agent.collect()
+            self.agent.act("collect")
 
     async def run(self):
         """
@@ -217,6 +221,13 @@ class WumpusGame:
                         self.handle_key_event(key)
                         self.key_hold_time = current_time
                         break
+
+            # Call act for every agent in auto mode at the specified interval
+            if current_time - self.last_act_time >= self.act_interval:
+                for agent in self.environment.entities:
+                    if agent.entity_type == "Agent" and agent.auto_mode and agent.alive:
+                        agent.act()
+                self.last_act_time = current_time
 
             self.check_agent_status()
             self.draw_environment()
