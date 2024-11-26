@@ -33,6 +33,8 @@ class Gold(Entity):
     perception_range_multiplier: int = 0
     current_image_key: str = "front"
 
+    revealed: bool = False
+
     def interaction_beaviour(self, agent, interaction_type):
         """
         Define the interaction behavior with an agent.
@@ -45,6 +47,10 @@ class Gold(Entity):
             The type of interaction (e.g., "collect").
         """
         if interaction_type == "neutral":
+            if self.revealed:
+                return
+
+            self.revealed = True
             self.perception_range_multiplier = 1
             self.environment.update_perceptions(self)
             agent.perceive()

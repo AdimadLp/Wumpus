@@ -230,6 +230,9 @@ class Agent(Entity):
         """
         neighbour_cell = self.get_facing_neighbour_cell()
 
+        if neighbour_cell is None:
+            print("Agent is facing out of bounds!")
+            return
         if not neighbour_cell.interact(self, interaction_type="collect"):
             print("Agent cannot collect from this cell!")
 
