@@ -1,6 +1,6 @@
 # FILE: environment/environment.py
 import random
-from environment.core.cell import Cell
+from environment.cell import Cell
 from environment.entities import Wumpus, Pit, Gold, Agent
 
 
@@ -37,7 +37,8 @@ class Environment:
         self.cell_size = cell_size
         self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
         self.entities = []
-        self.entity_counts = {Agent: 6, Wumpus: 1, Gold: 5, Pit: 10}
+        # Entities defined first will be placed first
+        self.entity_counts = {Wumpus: 1, Gold: 50, Pit: 0, Agent: 6}
 
         self.place_entities()
 

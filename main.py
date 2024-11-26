@@ -1,7 +1,7 @@
 # FILE: main.py
 import pygame
 from pygame.locals import *
-from environment.core.environment import Environment
+from environment import Environment
 import asyncio  # Necessary for pygbag
 import csv
 from datetime import datetime

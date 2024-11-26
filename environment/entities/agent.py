@@ -50,6 +50,7 @@ class Agent(Entity):
         """
         super().__post_init__()
         self.reveal_initial_cell()
+        self.perceive()
 
     def reveal_initial_cell(self):
         """

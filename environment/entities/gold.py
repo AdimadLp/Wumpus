@@ -29,6 +29,7 @@ class Gold(Entity):
         }
     )
     reward: int = 100
+    perception_type: str = "shininess"
     perception_range_multiplier: int = 0
     current_image_key: str = "front"
 
@@ -43,6 +44,11 @@ class Gold(Entity):
         interaction_type : str
             The type of interaction (e.g., "collect").
         """
+        if interaction_type == "neutral":
+            self.perception_range_multiplier = 1
+            self.environment.update_perceptions(self)
+            agent.perceive()
+
         if interaction_type == "collect":
             print("Agent collected a gold!")
             agent.score += self.reward
