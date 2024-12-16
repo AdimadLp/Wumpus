@@ -1,6 +1,7 @@
 # FILE: agent/agent.py
 from dataclasses import dataclass, field
 from .entity import Entity
+from helpers.neighborhood import moore_neighborhood
 
 
 @dataclass
@@ -26,6 +27,8 @@ class Agent(Entity):
         The auto mode status of the agent.
     missed_shots_left : int
         The number of missed shots left for the agent.
+    memory : dict
+        Count of perceptions assigned to each cell.
     """
 
     entity_type: str = "Agent"
@@ -43,6 +46,8 @@ class Agent(Entity):
     score: int = 0
     auto_mode: bool = False
     missed_shots_left: int = 2
+    memory: dict = field(default_factory=dict)
+    whisper_neighborhood = moore_neighborhood
 
     def __post_init__(self):
         """
@@ -238,7 +243,32 @@ class Agent(Entity):
 
     def communicate(self):
         """
-        Perform a communicate action.
+        Perform a communication action with other agents in the neighborhood.
         """
-        # TODO: Implement the communication logic
-        pass
+        return
+
+    def whisper(self, message):
+        """
+        Whisper a message to other agents in the defined neighborhood.
+
+        Parameters:
+        -----------
+        message : str
+            The message to whisper.
+        """
+        neighbours = self.whisper_neighborhood(self.position)
+        for neighbour in neighbours:
+            if neighbour.entity and neighbour.entity.entity_type == "Agent":
+                neighbour.entity.receive_whisper(message)
+
+    def receive_whisper(self, message):
+        """
+        Receive a whispered message from another agent.
+
+        Parameters:
+        -----------
+        message : str
+            The message received.
+        """
+        print(f"Agent at {self.position} received whisper: {message}")
+        # TODO: Implement negotiation logic based on the message

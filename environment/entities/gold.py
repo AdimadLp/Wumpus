@@ -16,6 +16,10 @@ class Gold(Entity):
         Specifies the image file paths.
     reward : int
         Specifies the reward value to 100.
+    perception_type : str, optional
+        The type of perception the gold has (default is "shininess").
+    perception_neighborhood : str, optional
+        The type of neighborhood for perception (default is "neumann").
     perception_range_multiplier : int
         Specifies the multiplier for the perception range to 0.
     current_image_key : str

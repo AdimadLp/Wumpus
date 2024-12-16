@@ -24,7 +24,7 @@ class Entity:
         The reward value associated with the entity.
     perception_type : str, optional
         The type of perception the entity has (default is None).
-    neighborhood : str, optional
+    perception_neighborhood : str, optional
         The type of neighborhood for perception (default is "neumann").
     perception_range_multiplier : int, optional
         The multiplier for the perception range (default is 1).
@@ -46,7 +46,7 @@ class Entity:
     image_paths: dict
     reward: int
     perception_type: str = field(default=None)
-    neighborhood: str = field(default="neumann")
+    perception_neighborhood: str = field(default="neumann")
     perception_range_multiplier: int = field(default=1)
     alive: bool = field(default=True)
     images: dict = field(default_factory=dict)
@@ -122,11 +122,11 @@ class Entity:
         Calculate the perception fields based on the entity's position and neighborhood type.
         """
         x, y = self.position
-        if self.neighborhood == "neumann":
+        if self.perception_neighborhood == "neumann":
             fields = neumann_neighborhood(
                 x, y, self.environment.size, self.perception_range_multiplier
             )
-        elif self.neighborhood == "moore":
+        elif self.perception_neighborhood == "moore":
             fields = moore_neighborhood(
                 x, y, self.environment.size, self.perception_range_multiplier
             )

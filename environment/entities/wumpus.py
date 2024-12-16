@@ -18,7 +18,7 @@ class Wumpus(Entity):
         The reward value associated with the Wumpus (default is 1000).
     perception_type : str
         The type of perception the Wumpus has (default is "stench").
-    neighborhood : str
+    perception_neighborhood : str
         The type of neighborhood for perception (default is "neumann").
     perception_range_multiplier : int
         Specifies the multiplier for the perception range to 1.
@@ -34,7 +34,6 @@ class Wumpus(Entity):
     )
     reward: int = 1000
     perception_type: str = "stench"
-    neighborhood: str = "neumann"
     perception_range_multiplier: int = 1
     current_image_key: str = "front"
 
