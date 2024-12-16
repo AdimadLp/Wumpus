@@ -1,7 +1,7 @@
 # FILE: agent/agent.py
 from dataclasses import dataclass, field
 from .entity import Entity
-from helpers.neighborhood import moore_neighborhood
+from helpers.neighborhood import moore_neighborhood, neumann_neighborhood
 
 
 @dataclass
@@ -28,7 +28,11 @@ class Agent(Entity):
     missed_shots_left : int
         The number of missed shots left for the agent.
     memory : dict
-        Count of perceptions assigned to each cell.
+        Count of perceptions assigned to each cell (default is a grid of the same size as the cell grid of dictionaries with None values for each perception that exists on the cells).
+    targeted_cells : list
+        A list of targeted cells for the agent.
+    strategy : str
+        The movement strategy of the agent (default is "random").
     """
 
     entity_type: str = "Agent"
@@ -48,6 +52,8 @@ class Agent(Entity):
     missed_shots_left: int = 2
     memory: dict = field(default_factory=dict)
     whisper_neighborhood = moore_neighborhood
+    targeted_cells: list = field(default_factory=list)
+    movement_mode: str = "random"
 
     def __post_init__(self):
         """
@@ -73,12 +79,40 @@ class Agent(Entity):
         list
             A list of perceptions in the current field.
         """
+        was_visited = False
         x, y = self.position
-        field = self.environment.grid[x][y]
-        if field.perceptions:
-            print("Agent perceives:", field.perceptions)
-            return field.perceptions
-        return []
+
+        current_cell = self.environment.grid[x][y]
+        if (x, y) in self.memory:
+            was_visited = self.memory[(x, y)]["visited"]
+            self.memory[(x, y)]["visited"] = True
+        else:
+            self.memory[(x, y)] = {
+                "visited": True,
+                "breeze": None,
+                "stench": None,
+                "shininess": None,
+            }
+        if current_cell.perceptions:
+            print("Agent perceives:", current_cell.perceptions)
+
+            if not was_visited:
+                for nx, ny in neumann_neighborhood(x, y, self.environment.size):
+                    neighbour_cell_position = (nx, ny)
+                    if neighbour_cell_position not in self.memory:
+                        self.memory[neighbour_cell_position] = {
+                            "visited": False,
+                            "breeze": None,
+                            "stench": None,
+                            "shininess": None,
+                        }
+                    for perception in current_cell.perceptions:
+                        if not self.memory[neighbour_cell_position]["visited"]:
+                            if self.memory[neighbour_cell_position][perception] is None:
+                                self.memory[neighbour_cell_position][perception] = 1
+                            else:
+                                self.memory[neighbour_cell_position][perception] += 1
+        print(self.memory)
 
     def decide(self):
         """

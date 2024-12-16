@@ -1,4 +1,4 @@
-def moore_neighborhood(x, y, size, multiplier):
+def moore_neighborhood(x, y, size, multiplier=1):
     """
     Calculate the Moore neighborhood for a given position.
 
@@ -30,7 +30,7 @@ def moore_neighborhood(x, y, size, multiplier):
     return neighbors
 
 
-def neumann_neighborhood(x, y, size, multiplier):
+def neumann_neighborhood(x, y, size, multiplier=1):
     """
     Calculate the Neumann neighborhood for a given position.
 
