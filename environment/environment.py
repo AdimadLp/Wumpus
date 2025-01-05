@@ -41,6 +41,12 @@ class Environment:
         self.entity_counts = {Wumpus: 1, Gold: 10, Pit: 10, Agent: 1}
 
         self.place_entities()
+        
+        # pre-determined test field:
+        # self.place_entity(Agent, 0, 0)
+        # self.place_entity(Pit, 2, 0)
+        # self.place_entity(Pit, 4, 0)
+        # self.place_entity(Gold, 0, 3)
 
     def generate_random_position(self):
         """

@@ -12,7 +12,7 @@ from datetime import datetime
 pygame.init()
 
 # Set up the game window
-WIDTH, HEIGHT = 1200, 1200
+WIDTH, HEIGHT = 900, 900
 GRID_SIZE = 10
 CELL_SIZE = WIDTH // GRID_SIZE
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
