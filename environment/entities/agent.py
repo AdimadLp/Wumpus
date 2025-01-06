@@ -4,12 +4,8 @@ from .entity import Entity
 from helpers.neighborhood import moore_neighborhood, neumann_neighborhood
 
 
-perception_to_target = {
-    "breeze": "pit",
-    "stench": "wumpus",
-    "shininess": "gold"
-}
-targets = ['pit', 'wumpus', 'gold']
+perception_to_target = {"breeze": "pit", "stench": "wumpus", "shininess": "gold"}
+targets = ["pit", "wumpus", "gold"]
 
 
 @dataclass
@@ -99,14 +95,12 @@ class Agent(Entity):
             # also save probabilities of entities
             self.memory[(x, y)] = {
                 "visited": True,
-
                 "breeze": 0,
                 "stench": 0,
                 "shininess": 0,
-
-                "pit": 0,
-                "wumpus": 0,
-                "gold": 0,
+                "pit": 0.0,
+                "wumpus": 0.0,
+                "gold": 0.0,
             }
 
         # initialise neighbors in memory
@@ -114,11 +108,9 @@ class Agent(Entity):
             if (nx, ny) not in self.memory:
                 self.memory[(nx, ny)] = {
                     "visited": False,
-
                     "breeze": 0,
                     "stench": 0,
                     "shininess": 0,
-
                     "pit": None,
                     "wumpus": None,
                     "gold": None,
@@ -128,42 +120,26 @@ class Agent(Entity):
             print("Agent perceives:", current_cell.perceptions)
 
             # reset counts, perceptions can change (shininess)
-            self.memory[(x, y)].update({
-                "breeze": 0,
-                "stench": 0,
-                "shininess": 0,
-            })
+            self.memory[(x, y)].update(
+                {
+                    "breeze": 0,
+                    "stench": 0,
+                    "shininess": 0,
+                }
+            )
 
             for perception in current_cell.perceptions:
-                self.memory[(x,y)][perception] += 1
+                self.memory[(x, y)][perception] += 1
 
-            # if not was_visited:
-            #     for nx, ny in neumann_neighborhood(x, y, self.environment.size):
-            #         neighbour_cell_position = (nx, ny)
-            #         if neighbour_cell_position not in self.memory:
-            #             self.memory[neighbour_cell_position] = {
-            #                 "visited": False,
-            #                 "breeze": None,
-            #                 "stench": None,
-            #                 "shininess": None,
-            #             }
-            #         for perception in current_cell.perceptions:
-            #             if not self.memory[neighbour_cell_position]["visited"]:
-            #                 if self.memory[neighbour_cell_position][perception] is None:
-            #                     self.memory[neighbour_cell_position][perception] = 1
-            #                 else:
-            #                     self.memory[neighbour_cell_position][perception] += 1
-        
         # estimate probabilities
         for nx, ny in neumann_neighborhood(x, y, self.environment.size):
             self.estimate_cell((nx, ny))
 
         # print(self.memory)
-        print('------------')
+        print("------------")
         for nx, ny in neumann_neighborhood(x, y, self.environment.size):
             self.print_probs((nx, ny))
-        print('------------')
-
+        print("------------")
 
     def estimate_cell(self, pos):
         """
@@ -176,21 +152,23 @@ class Agent(Entity):
 
         # todo: remove shininess after gold was collected
         # todo: get shininess perception to work some how or remove it completely
-        
+
         if pos in self.memory and self.memory[pos]["visited"]:
-            self.memory[pos].update({
-                "pit": 0.0,
-                "wumpus": 0.0,
-                "gold": 0.0,
-            })
+            self.memory[pos].update(
+                {
+                    "pit": 0.0,
+                    "wumpus": 0.0,
+                    "gold": 0.0,
+                }
+            )
             return None
-        
+
         # check neighbors for perceptions
         for x, y in neumann_neighborhood(pos[0], pos[1], self.environment.size):
             # only visited cells can have perceptions in memory
-            if (x,y) in self.memory and self.memory[(x,y)]["visited"]:
+            if (x, y) in self.memory and self.memory[(x, y)]["visited"]:
 
-                for perception, amount in self.memory[(x,y)].items():
+                for perception, amount in self.memory[(x, y)].items():
                     if perception in ["visited"] + targets:
                         continue
                     target = perception_to_target[perception]
@@ -198,40 +176,47 @@ class Agent(Entity):
                     if not amount:
                         self.memory[pos][target] = 0.0
                         continue
-                    
+
                     # only use max prob (but dont overwrite a 0 or 1)
-                    if self.memory[pos][target] != 0 and self.memory[pos][target] != 1.0:
+                    if (
+                        self.memory[pos][target] != 0
+                        and self.memory[pos][target] != 1.0
+                    ):
 
                         # get possible neighbors for target (of this neighbor)
                         # reduce amount by already determined neighbor cells
                         possible_neighbors = 0
                         for nx, ny in neumann_neighborhood(x, y, self.environment.size):
-                            if (nx,ny) not in self.memory or (
-                                not self.memory[(nx,ny)]["visited"] 
-                                and self.memory[(nx,ny)][target] != 0
-                                and self.memory[(nx,ny)][target] != 1
-                                ):
+                            if (nx, ny) not in self.memory or (
+                                not self.memory[(nx, ny)]["visited"]
+                                and self.memory[(nx, ny)][target] != 0
+                                and self.memory[(nx, ny)][target] != 1
+                            ):
                                 possible_neighbors += 1
-                            if (nx,ny) in self.memory and self.memory[(nx,ny)][target] == 1.0:
+                            if (nx, ny) in self.memory and self.memory[(nx, ny)][
+                                target
+                            ] == 1.0:
                                 amount -= 1
-                        
+
                         if amount and possible_neighbors == 0:
-                            print('warning: not possible')
+                            print("warning: not possible")
                             continue
 
                         prob = amount / possible_neighbors
 
-                        if not self.memory[pos][target] or self.memory[pos][target] < prob or prob == 0:
+                        if (
+                            not self.memory[pos][target]
+                            or self.memory[pos][target] < prob
+                            or prob == 0
+                        ):
                             self.memory[pos][target] = prob
-    
-    
+
     def print_probs(self, pos):
         if pos in self.memory:
             d = dict(filter(lambda item: item[0] in targets, self.memory[pos].items()))
-            print(f'{pos}: {d}') 
+            print(f"{pos}: {d}")
         else:
-            print('unknown')
-
+            print("unknown")
 
     def decide(self):
         """
