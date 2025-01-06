@@ -1,7 +1,10 @@
 # FILE: agent/agent.py
 from dataclasses import dataclass, field
 from .entity import Entity
-from helpers.neighborhood import moore_neighborhood, neumann_neighborhood
+from helpers.neighborhood import (
+    neumann_neighborhood,
+    whisper_neighborhood,
+)
 import random
 
 
@@ -56,7 +59,6 @@ class Agent(Entity):
     auto_mode: bool = False
     missed_shots_left: int = 2
     memory: dict = field(default_factory=dict)
-    whisper_neighborhood = moore_neighborhood
     targeted_cells: list = field(default_factory=list)
     movement_mode: str = "random"
 
@@ -234,13 +236,19 @@ class Agent(Entity):
             (1, 0): "right",
             (-1, 0): "left",
             (0, 1): "front",
-            (0, -1): "back"
+            (0, -1): "back",
         }
 
         safe_cells = []
-        for x, y in neumann_neighborhood(self.position[0], self.position[1], self.environment.size):
-            if (x,y) in self.memory and self.memory[(x,y)]['pit'] == 0.0 and self.memory[(x,y)]['wumpus'] == 0.0:
-                safe_cells.append((x,y))
+        for x, y in neumann_neighborhood(
+            self.position[0], self.position[1], self.environment.size
+        ):
+            if (
+                (x, y) in self.memory
+                and self.memory[(x, y)]["pit"] == 0.0
+                and self.memory[(x, y)]["wumpus"] == 0.0
+            ):
+                safe_cells.append((x, y))
 
         if safe_cells:
             target_cell = random.choice(safe_cells)
@@ -248,8 +256,8 @@ class Agent(Entity):
             dy = target_cell[1] - self.position[1]
             return f"move_{delta_to_direction[(dx, dy)]}"
         else:
-            # todo: broadcast for help (or do a risky strat) 
-
+            # todo: broadcast for help (or do a risky strat)
+            pass
 
         return "neutral"
 
@@ -406,7 +414,7 @@ class Agent(Entity):
         """
         Perform a communication action with other agents in the neighborhood.
         """
-        message = "Hello, neighbors!"  # Example message
+        message = f"cfp:{self.position}"  # Example message
         print(f"Agent at {self.position} communicates: {message}")
         self.whisper(message)
 
@@ -419,10 +427,12 @@ class Agent(Entity):
         message : str
             The message to whisper.
         """
-        neighbours = self.whisper_neighborhood(self.position)
-        for neighbour in neighbours:
-            if neighbour.entity and neighbour.entity.entity_type == "Agent":
-                neighbour.entity.receive_whisper(message)
+        x, y = self.position
+        neighbours = whisper_neighborhood(x, y, self.environment.size)
+        for nx, ny in neighbours:
+            cell = self.environment.grid[nx][ny]
+            if cell.entity and cell.entity.entity_type == "Agent":
+                cell.entity.receive_whisper(message)
 
     def receive_whisper(self, message):
         """

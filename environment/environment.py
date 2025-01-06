@@ -160,3 +160,8 @@ class Environment:
                     if cell.entity and cell.entity.entity_type == "Agent":
                         agents.append(cell.entity)
         return agents
+
+    def vote(self):
+        # Count how many agents are alive
+        # Mehrheit gewinnt
+        pass
