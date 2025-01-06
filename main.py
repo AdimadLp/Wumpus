@@ -188,6 +188,8 @@ class WumpusGame:
             self.agent.act("attack")
         elif key == K_RETURN:
             self.agent.act("collect")
+        elif key == K_c:
+            self.agent.act("communicate")
 
     async def run(self):
         """
