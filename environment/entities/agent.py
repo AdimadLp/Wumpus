@@ -383,7 +383,9 @@ class Agent(Entity):
         """
         Perform a communication action with other agents in the neighborhood.
         """
-        return
+        message = "Hello, neighbors!"  # Example message
+        print(f"Agent at {self.position} communicates: {message}")
+        self.whisper(message)
 
     def whisper(self, message):
         """

@@ -38,10 +38,10 @@ class Environment:
         self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
         self.entities = []
         # Entities defined first will be placed first
-        self.entity_counts = {Wumpus: 1, Gold: 10, Pit: 10, Agent: 1}
+        self.entity_counts = {Wumpus: 0, Gold: 0, Pit: 0, Agent: 10}
 
         self.place_entities()
-        
+
         # pre-determined test field:
         # self.place_entity(Agent, 0, 0)
         # self.place_entity(Pit, 2, 0)
