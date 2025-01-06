@@ -409,4 +409,5 @@ class Agent(Entity):
             The message received.
         """
         print(f"Agent at {self.position} received whisper: {message}")
+        # TODO: Implement response to the whisper
         # TODO: Implement negotiation logic based on the message
