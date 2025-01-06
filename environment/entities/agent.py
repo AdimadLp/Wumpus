@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from .entity import Entity
 from helpers.neighborhood import moore_neighborhood, neumann_neighborhood
+import random
 
 
 perception_to_target = {"breeze": "pit", "stench": "wumpus", "shininess": "gold"}
@@ -228,6 +229,28 @@ class Agent(Entity):
             The decision made by the agent (default is "neutral").
         """
         # TODO: Implement the decision-making logic
+
+        delta_to_direction = {
+            (1, 0): "right",
+            (-1, 0): "left",
+            (0, 1): "front",
+            (0, -1): "back"
+        }
+
+        safe_cells = []
+        for x, y in neumann_neighborhood(self.position[0], self.position[1], self.environment.size):
+            if (x,y) in self.memory and self.memory[(x,y)]['pit'] == 0.0 and self.memory[(x,y)]['wumpus'] == 0.0:
+                safe_cells.append((x,y))
+
+        if safe_cells:
+            target_cell = random.choice(safe_cells)
+            dx = target_cell[0] - self.position[0]
+            dy = target_cell[1] - self.position[1]
+            return f"move_{delta_to_direction[(dx, dy)]}"
+        else:
+            # todo: broadcast for help (or do a risky strat) 
+
+
         return "neutral"
 
     def act(self, decision=None):
