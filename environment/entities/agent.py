@@ -237,12 +237,7 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
-<<<<<<< HEAD
-        # TODO: Implement the decision-making logic
-        #   - if wumpus is clear shoot and broadcast
-=======
         # TODO: Implement the decision-making logic 
->>>>>>> c09a3cf (decision function handles collect and attack closes #6)
         #   - decide to end game
 
         # check if wumpus is clear shoot and broadcast
