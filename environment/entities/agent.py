@@ -257,6 +257,7 @@ class Agent(Entity):
 
         if self.memory["last_target"] and self.memory["last_target"] != self.position:
             # did not move -> entity in last_target -> only gold does not kill
+            # TODO: Issue: Agent cannot collect from this cell and all agents are stuck
             return "collect"
         self.memory["last_target"] = None
 
