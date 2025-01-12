@@ -7,7 +7,14 @@ from helpers.neighborhood import (
 )
 import random
 
-from helpers.essentials import perception_to_target, targets, parse_pos_str_to_tuple
+
+from helpers.essentials import (
+    perception_to_target,
+    targets,
+    delta_to_direction,
+    get_direction,
+    parse_pos_str_to_tuple
+)
 
 
 @dataclass
@@ -230,18 +237,35 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
+<<<<<<< HEAD
         # TODO: Implement the decision-making logic
         #   - if wumpus is clear shoot and broadcast
+=======
+        # TODO: Implement the decision-making logic 
+>>>>>>> c09a3cf (decision function handles collect and attack closes #6)
         #   - decide to end game
-        #   - if gold is clear: collect
 
-        delta_to_direction = {
-            (1, 0): "right",
-            (-1, 0): "left",
-            (0, 1): "front",
-            (0, -1): "back",
-        }
+        # check if wumpus is clear shoot and broadcast
+        for cell_pos in neumann_neighborhood(
+            self.position[0], self.position[1], self.environment.size
+        ):
+            if self.memory[cell_pos]["wumpus"] == 1.0:
+                required_direction = get_direction(self.position, cell_pos)
+                if self.direction == required_direction:
+                    # TODO: broadcast
+                    return "attack"
+                return f"turn_{required_direction}"
+        
+        # check if gold has to be collected
+        if "last_target" not in self.memory:
+            self.memory["last_target"] = None
 
+        if self.memory["last_target"] and self.memory["last_target"] != self.position:
+            # did not move -> entity in last_target -> only gold does not kill
+            return "collect"
+        self.memory["last_target"] = None
+
+        # move (safe and coordinated)
         if "target" not in self.memory:
             self.memory["target"] = None
 
@@ -275,10 +299,10 @@ class Agent(Entity):
                 # TODO: broadcast for help (or do a risky strat)
                 pass
         else:
-            dx = self.memory["target"][0] - self.position[0]
-            dy = self.memory["target"][1] - self.position[1]
+            action = f"move_{get_direction(self.position, self.memory["target"])}"
+            self.memory["last_target"] = self.memory["target"]
             self.memory["target"] = None
-            return f"move_{delta_to_direction[(dx, dy)]}"
+            return action
 
         return "neutral"
 
@@ -299,6 +323,10 @@ class Agent(Entity):
             "move_back": lambda: self.move("back"),
             "move_left": lambda: self.move("left"),
             "move_right": lambda: self.move("right"),
+            "turn_front": lambda: self.change_direction("front"),
+            "turn_back": lambda: self.change_direction("back"),
+            "turn_left": lambda: self.change_direction("left"),
+            "turn_right": lambda: self.change_direction("right"),
             "attack": self.attack,
             "collect": self.collect,
             "communicate": self.communicate,
@@ -378,7 +406,7 @@ class Agent(Entity):
             self.position = new_position
             self.perceive()
 
-    def get_facing_neighbour_cell(self):
+    def get_facing_neighbor_cell(self):
         """
         Get the cell that the agent is facing.
 
@@ -414,8 +442,8 @@ class Agent(Entity):
             print("Agent has no more arrows!")
             return
 
-        neighbour_cell = self.get_facing_neighbour_cell()
-        if not neighbour_cell.interact(self, interaction_type="attack"):
+        neighbor_cell = self.get_facing_neighbor_cell()
+        if not neighbor_cell.interact(self, interaction_type="attack"):
             print("Agent missed the shot!")
             self.missed_shots_left -= 1
 
@@ -423,12 +451,12 @@ class Agent(Entity):
         """
         Perform a collect action in the direction the agent is facing.
         """
-        neighbour_cell = self.get_facing_neighbour_cell()
+        neighbor_cell = self.get_facing_neighbor_cell()
 
-        if neighbour_cell is None:
+        if neighbor_cell is None:
             print("Agent is facing out of bounds!")
             return
-        if not neighbour_cell.interact(self, interaction_type="collect"):
+        if not neighbor_cell.interact(self, interaction_type="collect"):
             print("Agent cannot collect from this cell!")
 
     def communicate(self):
@@ -453,8 +481,8 @@ class Agent(Entity):
             The message to whisper.
         """
         x, y = self.position
-        neighbours = whisper_neighborhood(x, y, self.environment.size)
-        for nx, ny in neighbours:
+        neighbors = whisper_neighborhood(x, y, self.environment.size)
+        for nx, ny in neighbors:
             cell = self.environment.grid[nx][ny]
             if cell.entity and cell.entity.entity_type == "Agent":
                 cell.entity.receive_whisper(message)
