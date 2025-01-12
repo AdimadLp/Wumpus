@@ -13,7 +13,7 @@ from helpers.essentials import (
     targets,
     delta_to_direction,
     get_direction,
-    parse_pos_str_to_tuple
+    parse_pos_str_to_tuple,
 )
 
 
@@ -237,7 +237,7 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
-        # TODO: Implement the decision-making logic 
+        # TODO: Implement the decision-making logic
         #   - decide to end game
 
         # check if wumpus is clear shoot and broadcast
@@ -250,7 +250,7 @@ class Agent(Entity):
                     # TODO: broadcast
                     return "attack"
                 return f"turn_{required_direction}"
-        
+
         # check if gold has to be collected
         if "last_target" not in self.memory:
             self.memory["last_target"] = None
@@ -294,7 +294,7 @@ class Agent(Entity):
                 # TODO: broadcast for help (or do a risky strat)
                 pass
         else:
-            action = f"move_{get_direction(self.position, self.memory["target"])}"
+            action = f"move_{get_direction(self.position, self.memory['target'])}"
             self.memory["last_target"] = self.memory["target"]
             self.memory["target"] = None
             return action
