@@ -107,10 +107,10 @@ class Agent(Entity):
                 "visited": True,
                 "breeze": 0,
                 "stench": 0,
-                "shininess": 0,
+                # "shininess": 0,
                 "pit": 0.0,
                 "wumpus": 0.0,
-                "gold": 0.0,
+                # "gold": 0.0,
             }
 
         # initialise neighbors in memory
@@ -120,10 +120,10 @@ class Agent(Entity):
                     "visited": False,
                     "breeze": 0,
                     "stench": 0,
-                    "shininess": 0,
+                    # "shininess": 0,
                     "pit": None,
                     "wumpus": None,
-                    "gold": None,
+                    # "gold": None,
                 }
 
         if current_cell.perceptions:
@@ -134,11 +134,13 @@ class Agent(Entity):
                 {
                     "breeze": 0,
                     "stench": 0,
-                    "shininess": 0,
+                    # "shininess": 0,
                 }
             )
 
             for perception in current_cell.perceptions:
+                if perception == "shininess":
+                    continue
                 self.memory[(x, y)][perception] += 1
 
         # estimate probabilities
@@ -160,15 +162,12 @@ class Agent(Entity):
             pos: tuple (int, int)
         """
 
-        # TODO: remove shininess after gold was collected
-        # TODO: get shininess perception to work some how or remove it completely
-
         if pos in self.memory and self.memory[pos]["visited"]:
             self.memory[pos].update(
                 {
                     "pit": 0.0,
                     "wumpus": 0.0,
-                    "gold": 0.0,
+                    # "gold": 0.0,
                 }
             )
             return None
@@ -240,18 +239,31 @@ class Agent(Entity):
         # TODO: Implement the decision-making logic
         #   - decide to end game
 
-        # check if wumpus is clear shoot and broadcast
+        # check if wumpus is dead and broadcast
+        if "arrow_target" not in self.memory:
+            self.memory["arrow_target"] = None
+
+        if self.memory["arrow_target"]:
+            if self.position == self.memory["arrow_target"]:
+                # TODO: maybe shout as own action, but how to transfer data (message)?
+                self.shout("wumpus killed")
+                self.forget_wumpus()
+            else:
+                return f"move_{get_direction(self.position, self.memory['arrow_target'])}"
+
+        # check if wumpus is clear and shoot
         for cell_pos in neumann_neighborhood(
             self.position[0], self.position[1], self.environment.size
         ):
             if self.memory[cell_pos]["wumpus"] == 1.0:
                 required_direction = get_direction(self.position, cell_pos)
                 if self.direction == required_direction:
-                    # TODO: broadcast
+                    self.memory["arrow_target"] = cell_pos
                     return "attack"
                 return f"turn_{required_direction}"
 
         # check if gold has to be collected
+        # TODO: maybe replace with shininess detected...
         if "last_target" not in self.memory:
             self.memory["last_target"] = None
 
@@ -264,9 +276,10 @@ class Agent(Entity):
         # move (safe and coordinated)
         if "target" not in self.memory:
             self.memory["target"] = None
+        if "reserved_cells" not in self.memory:
+            self.memory["reserved_cells"] = []
 
         if not self.memory["target"]:
-            # TODO: exclude conflicting cells (determined by auction in same sim step)
             safe_cells = []
             for x, y in neumann_neighborhood(
                 self.position[0], self.position[1], self.environment.size
@@ -275,6 +288,7 @@ class Agent(Entity):
                     (x, y) in self.memory
                     and self.memory[(x, y)]["pit"] == 0.0
                     and self.memory[(x, y)]["wumpus"] == 0.0
+                    and (x, y) not in self.memory["reserved_cells"]
                 ):
                     safe_cells.append((x, y))
 
@@ -295,7 +309,9 @@ class Agent(Entity):
                 # TODO: broadcast for help (or do a risky strat)
                 pass
         else:
+
             action = f"move_{get_direction(self.position, self.memory['target'])}"
+            self.memory["reserved_cells"] = []
             self.memory["last_target"] = self.memory["target"]
             self.memory["target"] = None
             return action
@@ -481,38 +497,73 @@ class Agent(Entity):
         for nx, ny in neighbors:
             cell = self.environment.grid[nx][ny]
             if cell.entity and cell.entity.entity_type == "Agent":
-                cell.entity.receive_whisper(message)
+                cell.entity.receive_message(message)
 
-    def receive_whisper(self, message):
+    def shout(self, message):
         """
-        Receive a whispered message from another agent.
+        Shouts a message to all other agents
+
+        Parameters:
+        -----------
+        message : str
+            The message to shout.
+        """
+        for entity in self.environment.entities:
+            if entity.entity_type == "Agent" and entity != self:    # maybe also include self to induce process
+                entity.receive_message(message)
+
+
+    def receive_message(self, message):
+        """
+        Receive a message from another agent.
 
         Parameters:
         -----------
         message : str
             The message received.
         """
-        print(f"Agent at {self.position} received whisper: {message}")
+        print(f"Agent at {self.position} received message: {message}")
 
-        action, data = message.split(":")
-        pos = parse_pos_str_to_tuple(data.strip())
+        if ":" in message:
+            action, data = message.split(":")
+            pos = parse_pos_str_to_tuple(data.strip())
+        else:
+            data = None
+            pos = None
+            action = message
 
         match action.strip():
             case "going to":
                 current_target = self.memory.get("target")
                 if current_target and pos == current_target:
+                    # TODO: auction
                     outcome = random.choice([True, False])
                     if outcome:
                         self.whisper(f"deny: {pos}")
                     else:
                         self.whisper(f"allow: {pos}")
                         self.memory["target"] = None
+                        self.memory["reserved_cells"].append(pos)
+                else:
+                    self.memory["reserved_cells"].append(pos)
             case "deny":
+                self.memory["reserved_cells"].append(pos)
                 self.memory["target"] = None
             case "allow":
                 pass
-
-            # do not add add pos to conflicting neighbors
+                # do not add add pos to reserved neighbors
+                
+            case "wumpus killed":
+                self.forget_wumpus(self)
 
         # TODO: Implement response to the whisper
         # TODO: Implement negotiation logic based on the message
+
+    def forget_wumpus(self):
+        """
+        Removes everything related to the wumpus from memory
+        """
+        for key in self.memory:
+            if isinstance(key, tuple):
+                self.memory[key]["wumpus"] = 0.0
+                self.memory[key]["stench"] = 0 
