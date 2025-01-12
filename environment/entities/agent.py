@@ -7,12 +7,7 @@ from helpers.neighborhood import (
 )
 import random
 
-from helpers.essentials import (
-    perception_to_target,
-    targets,
-    parse_pos_str_to_tuple
-)
-
+from helpers.essentials import perception_to_target, targets, parse_pos_str_to_tuple
 
 
 @dataclass
@@ -233,7 +228,7 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
-        # TODO: Implement the decision-making logic 
+        # TODO: Implement the decision-making logic
         #   - if wumpus is clear shoot and broadcast
         #   - decide to end game
         #   - if gold is clear: collect
@@ -438,10 +433,10 @@ class Agent(Entity):
         """
         Perform a communication action with other agents in the neighborhood.
         """
-        # message = f"cfp:{self.position}"  # Example message
-
         if self.memory["target"]:
-            message = f"going to: {self.memory["target"]}"
+            message = (
+                f'going to: {self.memory["target"]}'  # Using single quotes outside
+            )
 
         print(f"Agent at {self.position} communicates: {message}")
         self.whisper(message)
@@ -473,7 +468,7 @@ class Agent(Entity):
         """
         print(f"Agent at {self.position} received whisper: {message}")
 
-        action, data = message.split(':')
+        action, data = message.split(":")
         pos = parse_pos_str_to_tuple(data.strip())
         match action.strip():
             case "going to":
