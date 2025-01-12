@@ -7,9 +7,7 @@ from helpers.neighborhood import (
 )
 import random
 
-
-perception_to_target = {"breeze": "pit", "stench": "wumpus", "shininess": "gold"}
-targets = ["pit", "wumpus", "gold"]
+from helpers.essentials import perception_to_target, targets, parse_pos_str_to_tuple
 
 
 @dataclass
@@ -56,7 +54,7 @@ class Agent(Entity):
     perception_range_multiplier: int = 0
     current_image_key: str = "front"
     score: int = 0
-    auto_mode: bool = False
+    auto_mode: bool = True
     missed_shots_left: int = 2
     memory: dict = field(default_factory=dict)
     targeted_cells: list = field(default_factory=list)
@@ -67,6 +65,8 @@ class Agent(Entity):
         Post-initialization to reveal the initial cell.
         """
         super().__post_init__()
+        self.memory["target"] = None  # Initialize target
+
         self.reveal_initial_cell()
         self.perceive()
 
@@ -153,8 +153,8 @@ class Agent(Entity):
             pos: tuple (int, int)
         """
 
-        # todo: remove shininess after gold was collected
-        # todo: get shininess perception to work some how or remove it completely
+        # TODO: remove shininess after gold was collected
+        # TODO: get shininess perception to work some how or remove it completely
 
         if pos in self.memory and self.memory[pos]["visited"]:
             self.memory[pos].update(
@@ -231,6 +231,9 @@ class Agent(Entity):
             The decision made by the agent (default is "neutral").
         """
         # TODO: Implement the decision-making logic
+        #   - if wumpus is clear shoot and broadcast
+        #   - decide to end game
+        #   - if gold is clear: collect
 
         delta_to_direction = {
             (1, 0): "right",
@@ -239,25 +242,43 @@ class Agent(Entity):
             (0, -1): "back",
         }
 
-        safe_cells = []
-        for x, y in neumann_neighborhood(
-            self.position[0], self.position[1], self.environment.size
-        ):
-            if (
-                (x, y) in self.memory
-                and self.memory[(x, y)]["pit"] == 0.0
-                and self.memory[(x, y)]["wumpus"] == 0.0
-            ):
-                safe_cells.append((x, y))
+        if "target" not in self.memory:
+            self.memory["target"] = None
 
-        if safe_cells:
-            target_cell = random.choice(safe_cells)
-            dx = target_cell[0] - self.position[0]
-            dy = target_cell[1] - self.position[1]
-            return f"move_{delta_to_direction[(dx, dy)]}"
+        if not self.memory["target"]:
+            # TODO: exclude conflicting cells (determined by auction in same sim step)
+            safe_cells = []
+            for x, y in neumann_neighborhood(
+                self.position[0], self.position[1], self.environment.size
+            ):
+                if (
+                    (x, y) in self.memory
+                    and self.memory[(x, y)]["pit"] == 0.0
+                    and self.memory[(x, y)]["wumpus"] == 0.0
+                ):
+                    safe_cells.append((x, y))
+
+            if safe_cells:
+                # explore
+                unvisited_cells = []
+                for cell in safe_cells:
+                    if not self.memory[cell]["visited"]:
+                        unvisited_cells.append(cell)
+                if unvisited_cells:
+                    self.memory["target"] = random.choice(unvisited_cells)
+                    return "communicate"
+
+                # go back
+                self.memory["target"] = random.choice(safe_cells)
+                return "communicate"
+            else:
+                # TODO: broadcast for help (or do a risky strat)
+                pass
         else:
-            # todo: broadcast for help (or do a risky strat)
-            pass
+            dx = self.memory["target"][0] - self.position[0]
+            dy = self.memory["target"][1] - self.position[1]
+            self.memory["target"] = None
+            return f"move_{delta_to_direction[(dx, dy)]}"
 
         return "neutral"
 
@@ -414,7 +435,11 @@ class Agent(Entity):
         """
         Perform a communication action with other agents in the neighborhood.
         """
-        message = f"cfp:{self.position}"  # Example message
+        if self.memory["target"]:
+            message = (
+                f'going to: {self.memory["target"]}'  # Using single quotes outside
+            )
+
         print(f"Agent at {self.position} communicates: {message}")
         self.whisper(message)
 
@@ -444,5 +469,26 @@ class Agent(Entity):
             The message received.
         """
         print(f"Agent at {self.position} received whisper: {message}")
+
+        action, data = message.split(":")
+        pos = parse_pos_str_to_tuple(data.strip())
+
+        match action.strip():
+            case "going to":
+                current_target = self.memory.get("target")
+                if current_target and pos == current_target:
+                    outcome = random.choice([True, False])
+                    if outcome:
+                        self.whisper(f"deny: {pos}")
+                    else:
+                        self.whisper(f"allow: {pos}")
+                        self.memory["target"] = None
+            case "deny":
+                self.memory["target"] = None
+            case "allow":
+                pass
+
+            # do not add add pos to conflicting neighbors
+
         # TODO: Implement response to the whisper
         # TODO: Implement negotiation logic based on the message
