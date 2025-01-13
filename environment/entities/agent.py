@@ -74,7 +74,7 @@ class Agent(Entity):
         super().__post_init__()
         self.memory["target"] = None  # Initialize target
         self.memory["reserved_cells"] = []  # Initialize reserved_cells
-        self.memory["last_target"] = None
+        # self.memory["last_target"] = None
         self.memory["arrow_target"] = None
 
         self.reveal_initial_cell()
@@ -143,7 +143,9 @@ class Agent(Entity):
 
             for perception in current_cell.perceptions:
                 if perception == "shininess":
-                    continue
+                    # continue
+                    self.memory["shininess"] = True
+
                 self.memory[(x, y)][perception] += 1
 
         # estimate probabilities
@@ -151,10 +153,10 @@ class Agent(Entity):
             self.estimate_cell((nx, ny))
 
         # print(self.memory)
-        print("------------")
-        for nx, ny in neumann_neighborhood(x, y, self.environment.size):
-            self.print_probs((nx, ny))
-        print("------------")
+        # print("------------")
+        # for nx, ny in neumann_neighborhood(x, y, self.environment.size):
+        #     self.print_probs((nx, ny))
+        # print("------------")
 
     def estimate_cell(self, pos):
         """
@@ -242,10 +244,11 @@ class Agent(Entity):
         # TODO: Implement the decision-making logic
         #   - decide to end game
 
-        # check if wumpus is dead and broadcast
-        if "arrow_target" not in self.memory:
-            self.memory["arrow_target"] = None
+        # check if gold has to be collected (new approach)
+        if "shininess" in self.memory and self.memory["shininess"]:
+            return "collect"
 
+        # check if wumpus is dead and broadcast
         if self.memory["arrow_target"]:
             if self.position == self.memory["arrow_target"]:
                 # TODO: maybe shout as own action, but how to transfer data (message)?
@@ -269,21 +272,14 @@ class Agent(Entity):
 
         # check if gold has to be collected
         # TODO: maybe replace with shininess detected...
-        if "last_target" not in self.memory:
-            self.memory["last_target"] = None
 
-        if self.memory["last_target"] and self.memory["last_target"] != self.position:
+        # if self.memory["last_target"] and self.memory["last_target"] != self.position:
             # did not move -> entity in last_target -> only gold does not kill
             # TODO: Issue: Agent cannot collect from this cell and all agents are stuck
-            return "collect"
-        self.memory["last_target"] = None
+        #     return "collect"
+        # self.memory["last_target"] = None
 
         # move (safe and coordinated)
-        if "target" not in self.memory:
-            self.memory["target"] = None
-        if "reserved_cells" not in self.memory:
-            self.memory["reserved_cells"] = []
-
         if not self.memory["target"]:
             safe_cells = []
             for x, y in neumann_neighborhood(
@@ -312,12 +308,13 @@ class Agent(Entity):
                 return "communicate"
             else:
                 # TODO: broadcast for help (or do a risky strat)
+                print(f"Agent at {self.position} is stuck, needs help")
                 pass
         else:
 
             action = f"move_{get_direction(self.position, self.memory['target'])}"
             self.memory["reserved_cells"] = []
-            self.memory["last_target"] = self.memory["target"]
+            # self.memory["last_target"] = self.memory["target"]
             self.memory["target"] = None
             return action
 
