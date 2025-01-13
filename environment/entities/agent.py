@@ -153,10 +153,10 @@ class Agent(Entity):
             self.estimate_cell((nx, ny))
 
         # print(self.memory)
-        # print("------------")
-        # for nx, ny in neumann_neighborhood(x, y, self.environment.size):
-        #     self.print_probs((nx, ny))
-        # print("------------")
+        print("------------")
+        for nx, ny in neumann_neighborhood(x, y, self.environment.size):
+            self.print_probs((nx, ny))
+        print("------------")
 
     def estimate_cell(self, pos):
         """
@@ -166,6 +166,12 @@ class Agent(Entity):
         -----------
             pos: tuple (int, int)
         """
+
+        # check if cell was visited by other agents
+        cell = self.environment.grid[pos[0]][pos[1]]
+        if cell.visible and pos in self.memory and not self.memory[pos]["visited"]:
+            self.memory[pos]["visited"] = True
+
 
         if pos in self.memory and self.memory[pos]["visited"]:
             self.memory[pos].update(
@@ -329,6 +335,7 @@ class Agent(Entity):
         decision : str, optional
             The decision to act upon. Given decision, if in manual mode and call decide() if in auto mode.
         """
+        self.perceive()
         if self.auto_mode:
             decision = self.decide()
 
@@ -418,7 +425,7 @@ class Agent(Entity):
             old_cell.remove_entity()
             new_cell.set_entity(self)
             self.position = new_position
-            self.perceive()
+            # self.perceive()
 
     def get_facing_neighbor_cell(self):
         """
