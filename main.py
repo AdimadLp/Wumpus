@@ -65,7 +65,7 @@ class WumpusGame:
         self.all_agents = []
 
         # Interval for calling the act function (default 1 second)
-        self.act_interval = 1000  # milliseconds
+        self.act_interval = 500 #1000  # milliseconds
         self.last_act_time = 0  # last time the act function was called
 
         self.DEBUG = True
@@ -253,7 +253,6 @@ class WumpusGame:
 
                 self.check_agent_status()
                 self.draw_environment()
-            # print('step')
             clock.tick(30)
             await asyncio.sleep(0)
 

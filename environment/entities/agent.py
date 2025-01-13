@@ -78,7 +78,7 @@ class Agent(Entity):
         self.memory["arrow_target"] = None
 
         self.reveal_initial_cell()
-        self.perceive()
+        # self.perceive()
 
     def __str__(self):
         return f"Agent at {self.position}"
@@ -186,6 +186,8 @@ class Agent(Entity):
             )
             return None
 
+
+
         # check neighbors for perceptions
         for x, y in neumann_neighborhood(pos[0], pos[1], self.environment.size):
             # only visited cells can have perceptions in memory
@@ -262,8 +264,9 @@ class Agent(Entity):
         if self.memory["arrow_target"]:
             if self.position == self.memory["arrow_target"]:
                 # TODO: maybe shout as own action, but how to transfer data (message)?
-                self.shout("wumpus killed")
-                self.forget_wumpus()
+                self.shout(f"wumpus killed: {self.position}")
+                self.memory["arrow_target"] = None
+                self.forget_wumpus(self.position)
             else:
                 return (
                     f"move_{get_direction(self.position, self.memory['arrow_target'])}"
@@ -572,16 +575,28 @@ class Agent(Entity):
                 # do not add add pos to reserved neighbors
 
             case "wumpus killed":
-                self.forget_wumpus()
+                self.forget_wumpus(pos)
 
         # TODO: Implement response to the whisper
         # TODO: Implement negotiation logic based on the message
 
-    def forget_wumpus(self):
+    def forget_wumpus(self, pos):
         """
-        Removes everything related to the wumpus from memory
+        Removes everything related to the wumpus from memory at given position
+
+        Parameters:
+        -----------
+        pos: tuple
+            where the wumpus was killed
         """
-        for key in self.memory:
-            if isinstance(key, tuple):
-                self.memory[key]["wumpus"] = 0.0
-                self.memory[key]["stench"] = 0
+
+        if pos in self.memory:
+            self.memory[pos]["wumpus"] = 0.0
+            self.memory[pos]["stench"] = 0
+
+        for cell_pos in neumann_neighborhood(
+            self.position[0], self.position[1], self.environment.size
+        ):
+            if cell_pos in self.memory:
+                self.memory[cell_pos]["wumpus"] = 0.0
+                self.memory[cell_pos]["stench"] = 0
