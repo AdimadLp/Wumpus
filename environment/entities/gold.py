@@ -60,6 +60,6 @@ class Gold(Entity):
             agent.perceive()
 
         if interaction_type == "collect":
-            print("Agent collected a gold!")
+            print(f"{agent} collected a gold!")
             agent.score += self.reward
             self.die()
