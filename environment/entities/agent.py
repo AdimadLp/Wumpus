@@ -173,7 +173,7 @@ class Agent(Entity):
         # check if cell was visited by other agents
         # cell = self.environment.grid[pos[0]][pos[1]]
         # if cell.visible and pos in self.memory and not self.memory[pos]["visited"]:
-        #     self.memory[pos]["visited"] = True
+        #    self.memory[pos]["visited"] = True
 
 
         if pos in self.memory and self.memory[pos]["visited"]:
@@ -301,6 +301,9 @@ class Agent(Entity):
                     and self.memory[(x, y)]["wumpus"] == 0.0
                     and (x, y) not in self.memory["reserved_cells"]
                 ):
+                    safe_cells.append((x, y))
+                # also append externaly visited cells to explore them
+                if (x,y) not in safe_cells and self.environment.grid[x][y].visible:
                     safe_cells.append((x, y))
 
             if safe_cells:
