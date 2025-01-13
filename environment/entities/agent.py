@@ -557,7 +557,7 @@ class Agent(Entity):
                 # do not add add pos to reserved neighbors
 
             case "wumpus killed":
-                self.forget_wumpus(self)
+                self.forget_wumpus()
 
         # TODO: Implement response to the whisper
         # TODO: Implement negotiation logic based on the message
