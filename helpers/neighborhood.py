@@ -80,12 +80,13 @@ def whisper_neighborhood(x, y, size):
     list
         A list of (x, y) tuples representing the neighboring positions.
     """
+
     moore_neighbors = moore_neighborhood(x, y, size, multiplier=1)
     neumann_neighbors_2 = neumann_neighborhood(x, y, size, multiplier=2)
     neumann_neighbors_1 = neumann_neighborhood(x, y, size, multiplier=1)
 
-    # Combine the two neighborhoods and remove duplicates
+    # Combine the two neighborhoods and remove duplicates (set does this automaticly)
     combined_neighbors = list(
-        set(moore_neighbors + neumann_neighbors_2) - set(neumann_neighbors_1)
+        set(moore_neighbors + neumann_neighbors_2) # - set(neumann_neighbors_1)
     )
     return combined_neighbors

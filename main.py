@@ -65,7 +65,7 @@ class WumpusGame:
         self.all_agents = []
 
         # Interval for calling the act function (default 1 second)
-        self.act_interval = 500 #1000  # milliseconds
+        self.act_interval = 300 #1000  # milliseconds
         self.last_act_time = 0  # last time the act function was called
 
         self.DEBUG = True

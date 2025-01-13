@@ -306,7 +306,11 @@ class Agent(Entity):
                 ):
                     safe_cells.append((x, y))
                 # also append externaly visited cells to explore them
-                if (x,y) not in safe_cells and self.environment.grid[x][y].visible:
+                if (
+                    (x,y) not in safe_cells
+                    and (x, y) not in self.memory["reserved_cells"]
+                    and self.environment.grid[x][y].visible
+                ):
                     safe_cells.append((x, y))
 
             if safe_cells:
@@ -325,7 +329,10 @@ class Agent(Entity):
             else:
                 # TODO: broadcast for help (or do a risky strat)
                 print(f"{self} is stuck, needs help")
-                pass
+                self.whisper(f"I am stuck: {self.position}")
+                # reserved cells have to be resetted, beacuse the agent does not move
+                self.memory["reserved_cells"] = []
+
         elif self.direction != get_direction(self.position, self.memory['target']):
             return f"turn_{get_direction(self.position, self.memory['target'])}"
         else:
@@ -497,7 +504,7 @@ class Agent(Entity):
         """
         if self.memory["target"]:
             message = (
-                f'going to: {self.memory["target"]}'  # Using single quotes outside
+                f'want to move: {self.position}->{self.memory["target"]}'  # Using single quotes outside
             )
 
         print(f"{self} communicates: {message}")
@@ -547,26 +554,33 @@ class Agent(Entity):
 
         if ":" in message:
             action, data = message.split(":")
-            pos = parse_pos_str_to_tuple(data.strip())
+            if '->' in message:
+                pos = None
+                data1, data2 = data.split('->')
+                pos1 = parse_pos_str_to_tuple(data1.strip())
+                pos2 = parse_pos_str_to_tuple(data2.strip())
+            else:
+                pos = parse_pos_str_to_tuple(data.strip())
         else:
             data = None
             pos = None
             action = message
 
         match action.strip():
-            case "going to":
+            case "want to move":
+                self.memory["reserved_cells"].append(pos1)
                 current_target = self.memory.get("target")
-                if current_target and pos == current_target:
+                if current_target and pos2 == current_target:
                     # TODO: auction
                     outcome = random.choice([True, False])
                     if outcome:
-                        self.whisper(f"deny: {pos}")
+                        self.whisper(f"deny: {pos2}")
                     else:
-                        self.whisper(f"allow: {pos}")
+                        self.whisper(f"allow: {pos2}")
                         self.memory["target"] = None
-                        self.memory["reserved_cells"].append(pos)
+                        self.memory["reserved_cells"].append(pos2)
                 else:
-                    self.memory["reserved_cells"].append(pos)
+                    self.memory["reserved_cells"].append(pos2)
             case "deny":
                 self.memory["reserved_cells"].append(pos)
                 self.memory["target"] = None
@@ -577,8 +591,9 @@ class Agent(Entity):
             case "wumpus killed":
                 self.forget_wumpus(pos)
 
-        # TODO: Implement response to the whisper
-        # TODO: Implement negotiation logic based on the message
+            case "I am stuck":
+                # TODO: maybe answer a safe neighbor cell the recieving Agent knows
+                self.memory["reserved_cells"].append(pos)
 
     def forget_wumpus(self, pos):
         """
@@ -590,13 +605,16 @@ class Agent(Entity):
             where the wumpus was killed
         """
 
+        # prop has to be None and visited to false to reevaluate 
         if pos in self.memory:
-            self.memory[pos]["wumpus"] = 0.0
+            self.memory[pos]["visited"] = False
+            self.memory[pos]["wumpus"] = None
             self.memory[pos]["stench"] = 0
 
         for cell_pos in neumann_neighborhood(
             self.position[0], self.position[1], self.environment.size
         ):
             if cell_pos in self.memory:
-                self.memory[cell_pos]["wumpus"] = 0.0
+                self.memory[cell_pos]["visited"] = False
+                self.memory[cell_pos]["wumpus"] = None
                 self.memory[cell_pos]["stench"] = 0
