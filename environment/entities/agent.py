@@ -80,6 +80,9 @@ class Agent(Entity):
         self.reveal_initial_cell()
         self.perceive()
 
+    def __str__(self):
+        return f"Agent at {self.position}"
+
     def reveal_initial_cell(self):
         """
         Reveal the initial cell where the agent is located.
@@ -130,7 +133,7 @@ class Agent(Entity):
                 }
 
         if current_cell.perceptions:
-            print("Agent perceives:", current_cell.perceptions)
+            print(f"{self} perceives: {current_cell.perceptions}")
 
             # reset counts, perceptions can change (shininess)
             self.memory[(x, y)].update(
@@ -153,7 +156,7 @@ class Agent(Entity):
             self.estimate_cell((nx, ny))
 
         # print(self.memory)
-        print("------------")
+        print(f"------ {self} estimates ------")
         for nx, ny in neumann_neighborhood(x, y, self.environment.size):
             self.print_probs((nx, ny))
         print("------------")
@@ -168,9 +171,9 @@ class Agent(Entity):
         """
 
         # check if cell was visited by other agents
-        cell = self.environment.grid[pos[0]][pos[1]]
-        if cell.visible and pos in self.memory and not self.memory[pos]["visited"]:
-            self.memory[pos]["visited"] = True
+        # cell = self.environment.grid[pos[0]][pos[1]]
+        # if cell.visible and pos in self.memory and not self.memory[pos]["visited"]:
+        #     self.memory[pos]["visited"] = True
 
 
         if pos in self.memory and self.memory[pos]["visited"]:
@@ -219,7 +222,7 @@ class Agent(Entity):
                                 amount -= 1
 
                         if amount and possible_neighbors == 0:
-                            print("warning: not possible")
+                            print(f"{self} warning: not possible")
                             continue
 
                         prob = amount / possible_neighbors
@@ -315,7 +318,7 @@ class Agent(Entity):
                 return "communicate"
             else:
                 # TODO: broadcast for help (or do a risky strat)
-                print(f"Agent at {self.position} is stuck, needs help")
+                print(f"{self} is stuck, needs help")
                 pass
         else:
 
@@ -461,12 +464,12 @@ class Agent(Entity):
         Perform an attack action in the direction the agent is facing.
         """
         if self.missed_shots_left == 0:
-            print("Agent has no more arrows!")
+            print(f"{self} has no more arrows!")
             return
 
         neighbor_cell = self.get_facing_neighbor_cell()
         if not neighbor_cell.interact(self, interaction_type="attack"):
-            print("Agent missed the shot!")
+            print(f"{self} missed the shot!")
             self.missed_shots_left -= 1
 
     def collect(self):
@@ -476,10 +479,10 @@ class Agent(Entity):
         neighbor_cell = self.get_facing_neighbor_cell()
 
         if neighbor_cell is None:
-            print("Agent is facing out of bounds!")
+            print(f"{self} is facing out of bounds!")
             return
         if not neighbor_cell.interact(self, interaction_type="collect"):
-            print("Agent cannot collect from this cell!")
+            print(f"{self} cannot collect from this cell!")
 
     def communicate(self):
         """
@@ -490,7 +493,7 @@ class Agent(Entity):
                 f'going to: {self.memory["target"]}'  # Using single quotes outside
             )
 
-        print(f"Agent at {self.position} communicates: {message}")
+        print(f"{self} communicates: {message}")
         self.whisper(message)
 
     def whisper(self, message):
@@ -533,7 +536,7 @@ class Agent(Entity):
         message : str
             The message received.
         """
-        print(f"Agent at {self.position} received message: {message}")
+        print(f"{self} received message: {message}")
 
         if ":" in message:
             action, data = message.split(":")

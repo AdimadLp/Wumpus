@@ -68,6 +68,9 @@ class WumpusGame:
         self.act_interval = 1000  # milliseconds
         self.last_act_time = 0  # last time the act function was called
 
+        self.DEBUG = True
+        self.debug_allow_next_step = True
+
     def get_next_agent(self):
         """
         Get the next agent with auto_mode set to False.
@@ -158,7 +161,7 @@ class WumpusGame:
             self.all_agents.append(self.agent)
             self.agent = self.get_next_agent()
 
-    def handle_key_event(self, key):
+    def handle_key_event(self, key, no_agent=False):
         """
         Handle key events for user input to move the agent.
 
@@ -175,21 +178,29 @@ class WumpusGame:
             K_RIGHT: "right",
         }
         # Check if the key is a valid direction
-        if key in direction_map:
-            direction = direction_map[key]
-            if self.agent.direction == direction:
-                try:
-                    self.agent.act(f"move_{direction}")
-                except (IndexError, ValueError) as e:
-                    print(e)
-            self.agent.change_direction(direction)
-        # Check if the key is Space for attacking or Enter for collecting
-        elif key == K_SPACE:
-            self.agent.act("attack")
-        elif key == K_RETURN:
-            self.agent.act("collect")
-        elif key == K_c:
-            self.agent.act("communicate")
+        if not no_agent:
+            if key in direction_map:
+                direction = direction_map[key]
+                if self.agent.direction == direction:
+                    try:
+                        self.agent.act(f"move_{direction}")
+                    except (IndexError, ValueError) as e:
+                        print(e)
+                self.agent.change_direction(direction)
+            # Check if the key is Space for attacking or Enter for collecting
+            elif key == K_SPACE:
+                self.agent.act("attack")
+            elif key == K_RETURN:
+                self.agent.act("collect")
+            elif key == K_c:
+                self.agent.act("communicate")
+        else:
+
+            # game controll
+            if key == K_d:
+                self.DEBUG = not self.DEBUG
+            elif key == K_s and self.DEBUG and not self.debug_allow_next_step:
+                self.debug_allow_next_step = True
 
     async def run(self):
         """
@@ -199,6 +210,7 @@ class WumpusGame:
         clock = pygame.time.Clock()
         # Main game loop
         while self.running:
+
             # Get the current time and pressed keys
             current_time = pygame.time.get_ticks()
             keys = pygame.key.get_pressed()
@@ -213,6 +225,9 @@ class WumpusGame:
                     self.handle_key_event(event.key)
                     self.key_hold_time = current_time
 
+                if event.type == KEYDOWN:
+                    self.handle_key_event(event.key, no_agent=True)
+
             # Check if the agent is set and the key is held
             if (
                 self.agent
@@ -224,15 +239,21 @@ class WumpusGame:
                         self.key_hold_time = current_time
                         break
 
-            # Call act for every agent in auto mode at the specified interval
-            if current_time - self.last_act_time >= self.act_interval:
-                for agent in self.environment.entities:
-                    if agent.entity_type == "Agent" and agent.auto_mode and agent.alive:
-                        agent.act()
-                self.last_act_time = current_time
+            if (self.DEBUG and self.debug_allow_next_step) or not self.DEBUG:
+                if self.debug_allow_next_step:
+                    self.debug_allow_next_step = False
 
-            self.check_agent_status()
-            self.draw_environment()
+                # Call act for every agent in auto mode at the specified interval
+                if current_time - self.last_act_time >= self.act_interval:
+                    print('------------------------------------- SIM STEP --------------------------------------------')
+                    for agent in self.environment.entities:
+                        if agent.entity_type == "Agent" and agent.auto_mode and agent.alive:
+                            agent.act()
+                    self.last_act_time = current_time
+
+                self.check_agent_status()
+                self.draw_environment()
+            # print('step')
             clock.tick(30)
             await asyncio.sleep(0)
 
