@@ -73,6 +73,9 @@ class Agent(Entity):
         """
         super().__post_init__()
         self.memory["target"] = None  # Initialize target
+        self.memory["reserved_cells"] = []  # Initialize reserved_cells
+        self.memory["last_target"] = None
+        self.memory["arrow_target"] = None
 
         self.reveal_initial_cell()
         self.perceive()
@@ -249,7 +252,9 @@ class Agent(Entity):
                 self.shout("wumpus killed")
                 self.forget_wumpus()
             else:
-                return f"move_{get_direction(self.position, self.memory['arrow_target'])}"
+                return (
+                    f"move_{get_direction(self.position, self.memory['arrow_target'])}"
+                )
 
         # check if wumpus is clear and shoot
         for cell_pos in neumann_neighborhood(
@@ -509,9 +514,10 @@ class Agent(Entity):
             The message to shout.
         """
         for entity in self.environment.entities:
-            if entity.entity_type == "Agent" and entity != self:    # maybe also include self to induce process
+            if (
+                entity.entity_type == "Agent" and entity != self
+            ):  # maybe also include self to induce process
                 entity.receive_message(message)
-
 
     def receive_message(self, message):
         """
@@ -552,7 +558,7 @@ class Agent(Entity):
             case "allow":
                 pass
                 # do not add add pos to reserved neighbors
-                
+
             case "wumpus killed":
                 self.forget_wumpus(self)
 
@@ -566,4 +572,4 @@ class Agent(Entity):
         for key in self.memory:
             if isinstance(key, tuple):
                 self.memory[key]["wumpus"] = 0.0
-                self.memory[key]["stench"] = 0 
+                self.memory[key]["stench"] = 0
