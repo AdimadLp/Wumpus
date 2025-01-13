@@ -170,12 +170,6 @@ class Agent(Entity):
             pos: tuple (int, int)
         """
 
-        # check if cell was visited by other agents
-        # cell = self.environment.grid[pos[0]][pos[1]]
-        # if cell.visible and pos in self.memory and not self.memory[pos]["visited"]:
-        #    self.memory[pos]["visited"] = True
-
-
         if pos in self.memory and self.memory[pos]["visited"]:
             self.memory[pos].update(
                 {
@@ -185,8 +179,6 @@ class Agent(Entity):
                 }
             )
             return None
-
-
 
         # check neighbors for perceptions
         for x, y in neumann_neighborhood(pos[0], pos[1], self.environment.size):
@@ -283,15 +275,6 @@ class Agent(Entity):
                     return "attack"
                 return f"turn_{required_direction}"
 
-        # check if gold has to be collected
-        # TODO: maybe replace with shininess detected...
-
-        # if self.memory["last_target"] and self.memory["last_target"] != self.position:
-            # did not move -> entity in last_target -> only gold does not kill
-            # TODO: Issue: Agent cannot collect from this cell and all agents are stuck
-        #     return "collect"
-        # self.memory["last_target"] = None
-
         # move (safe and coordinated)
         if not self.memory["target"]:
             safe_cells = []
@@ -327,7 +310,7 @@ class Agent(Entity):
                 self.memory["target"] = random.choice(safe_cells)
                 return "communicate"
             else:
-                # TODO: broadcast for help (or do a risky strat)
+                # TODO: do a risky strat, if all are stuck or Agent cant be reached
                 print(f"{self} is stuck, needs help")
                 self.whisper(f"I am stuck: {self.position}")
                 # reserved cells have to be resetted, beacuse the agent does not move
