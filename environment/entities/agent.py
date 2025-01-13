@@ -323,8 +323,9 @@ class Agent(Entity):
                 # TODO: broadcast for help (or do a risky strat)
                 print(f"{self} is stuck, needs help")
                 pass
+        elif self.direction != get_direction(self.position, self.memory['target']):
+            return f"turn_{get_direction(self.position, self.memory['target'])}"
         else:
-
             action = f"move_{get_direction(self.position, self.memory['target'])}"
             self.memory["reserved_cells"] = []
             # self.memory["last_target"] = self.memory["target"]
