@@ -143,8 +143,8 @@ class Agent(Entity):
 
             for perception in current_cell.perceptions:
                 if perception == "shininess":
-                    # continue
                     self.memory["shininess"] = True
+                    continue
 
                 self.memory[(x, y)][perception] += 1
 
@@ -252,6 +252,7 @@ class Agent(Entity):
 
         # check if gold has to be collected (new approach)
         if "shininess" in self.memory and self.memory["shininess"]:
+            self.memory["shininess"] = False
             return "collect"
 
         # check if wumpus is dead and broadcast
