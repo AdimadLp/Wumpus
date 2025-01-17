@@ -577,6 +577,31 @@ class Agent(Entity):
             case "I am stuck":
                 # TODO: maybe answer a safe neighbor cell the recieving Agent knows
                 self.memory["reserved_cells"].append(pos)
+                for cell_pos in neumann_neighborhood(
+                    pos[0], pos[1], self.environment.size
+                ):
+                    if cell_pos in self.memory and (self.memory[cell_pos]["visited"] or (
+                        self.memory[cell_pos]["wumpus"] == 0.0
+                        and self.memory[cell_pos]["pit"] == 0.0
+                    )):
+                        self.whisper(f'safe cell at: {cell_pos}')
+
+            case "safe cell at":
+                if pos in self.memory:
+                    self.memory[pos]["wumpus"] = 0.0
+                    self.memory[pos]["pit"] = 0.0
+                else:
+                    self.memory[pos] = {
+                        "visited": False,
+                        "breeze": 0,
+                        "stench": 0,
+                        # "shininess": 0,
+                        "pit": 0.0,
+                        "wumpus": 0.0,
+                        # "gold": 0.0,
+                    }
+                print(f'{self} added safe cell at {pos} to memory')
+
 
     def forget_wumpus(self, pos):
         """

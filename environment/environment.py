@@ -45,7 +45,8 @@ class Environment:
         # pre-determined test field:
         # self.place_entity(Agent, 0, 0)
         # self.place_entity(Agent, 3, 0)
-        # self.place_entity(Wumpus, 1, 0)
+        # self.place_entity(Agent, 0, 3)
+        # self.place_entity(Pit, 1, 0)
         # self.place_entity(Wumpus, 0, 3)
         # self.place_entity(Pit, 2, 0)
         # self.place_entity(Pit, 4, 0)
