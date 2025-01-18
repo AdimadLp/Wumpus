@@ -64,8 +64,13 @@ class Agent(Entity):
     auto_mode: bool = True
     missed_shots_left: int = 2
     memory: dict = field(default_factory=dict)
+    last_memories: list = field(
+        default_factory=list
+    )  # For checking if memory is changing
     targeted_cells: list = field(default_factory=list)
     movement_mode: str = "random"
+    vote_admin: bool = False
+    vote_state: str = "exit"
 
     def __post_init__(self):
         """
@@ -244,8 +249,16 @@ class Agent(Entity):
         str
             The decision made by the agent (default is "neutral").
         """
-        # TODO: Implement the decision-making logic
-        #   - decide to end game
+
+        if self.check_memory_stagnation() and not self.vote_admin:
+            self.vote_admin = True
+            self.vote_state = "exit"
+            self.shout("vote")
+        elif self.vote_admin:
+            if self.vote_state == "exit":
+                self.environment.game_over = True
+            else:
+                self.vote_admin = False
 
         # check if gold has to be collected (new approach)
         if "shininess" in self.memory and self.memory["shininess"]:
@@ -290,7 +303,7 @@ class Agent(Entity):
                     safe_cells.append((x, y))
                 # also append externaly visited cells to explore them
                 if (
-                    (x,y) not in safe_cells
+                    (x, y) not in safe_cells
                     and (x, y) not in self.memory["reserved_cells"]
                     and self.environment.grid[x][y].visible
                 ):
@@ -316,7 +329,7 @@ class Agent(Entity):
                 # reserved cells have to be resetted, beacuse the agent does not move
                 self.memory["reserved_cells"] = []
 
-        elif self.direction != get_direction(self.position, self.memory['target']):
+        elif self.direction != get_direction(self.position, self.memory["target"]):
             return f"turn_{get_direction(self.position, self.memory['target'])}"
         else:
             action = f"move_{get_direction(self.position, self.memory['target'])}"
@@ -486,9 +499,7 @@ class Agent(Entity):
         Perform a communication action with other agents in the neighborhood.
         """
         if self.memory["target"]:
-            message = (
-                f'want to move: {self.position}->{self.memory["target"]}'  # Using single quotes outside
-            )
+            message = f'want to move: {self.position}->{self.memory["target"]}'  # Using single quotes outside
 
         print(f"{self} communicates: {message}")
         self.whisper(message)
@@ -509,6 +520,35 @@ class Agent(Entity):
             if cell.entity and cell.entity.entity_type == "Agent":
                 cell.entity.receive_message(message)
 
+    def get_all_probabilities(self):
+        """Get dictionary of all position probabilities from memory"""
+        prob_dict = {}
+        for key, value in self.memory.items():
+            # Skip non-position entries
+            if not isinstance(key, tuple):
+                continue
+            # Get probabilities for this position
+            prob_dict[key] = {"pit": value["pit"], "wumpus": value["wumpus"]}
+        return prob_dict
+
+    def check_memory_stagnation(self):
+        """Check if memory probabilities haven't changed in last 10 steps"""
+        current_probs = str(self.get_all_probabilities())
+        self.last_memories.append(current_probs)
+
+        if len(self.last_memories) > 20:
+            self.last_memories.pop(0)
+            if len(set(self.last_memories)) == 1:  # All memories are identical
+                return True
+        return False
+
+    def vote(self):
+        """Cast a vote if memory is stagnant"""
+        if self.check_memory_stagnation():
+            self.shout("exit")
+        else:
+            self.shout("stay")
+
     def shout(self, message):
         """
         Shouts a message to all other agents
@@ -518,6 +558,7 @@ class Agent(Entity):
         message : str
             The message to shout.
         """
+        print(f"{self} shouts: {message}")
         for entity in self.environment.entities:
             if (
                 entity.entity_type == "Agent" and entity != self
@@ -537,9 +578,9 @@ class Agent(Entity):
 
         if ":" in message:
             action, data = message.split(":")
-            if '->' in message:
+            if "->" in message:
                 pos = None
-                data1, data2 = data.split('->')
+                data1, data2 = data.split("->")
                 pos1 = parse_pos_str_to_tuple(data1.strip())
                 pos2 = parse_pos_str_to_tuple(data2.strip())
             else:
@@ -580,11 +621,14 @@ class Agent(Entity):
                 for cell_pos in neumann_neighborhood(
                     pos[0], pos[1], self.environment.size
                 ):
-                    if cell_pos in self.memory and (self.memory[cell_pos]["visited"] or (
-                        self.memory[cell_pos]["wumpus"] == 0.0
-                        and self.memory[cell_pos]["pit"] == 0.0
-                    )):
-                        self.whisper(f'safe cell at: {cell_pos}')
+                    if cell_pos in self.memory and (
+                        self.memory[cell_pos]["visited"]
+                        or (
+                            self.memory[cell_pos]["wumpus"] == 0.0
+                            and self.memory[cell_pos]["pit"] == 0.0
+                        )
+                    ):
+                        self.whisper(f"safe cell at: {cell_pos}")
 
             case "safe cell at":
                 if pos in self.memory:
@@ -600,8 +644,15 @@ class Agent(Entity):
                         "wumpus": 0.0,
                         # "gold": 0.0,
                     }
-                print(f'{self} added safe cell at {pos} to memory')
+                print(f"{self} added safe cell at {pos} to memory")
 
+            case "vote":
+                if not self.vote_admin:
+                    self.vote()
+
+            case "stay":
+                if self.vote_admin:
+                    self.vote_state = "stay"
 
     def forget_wumpus(self, pos):
         """
@@ -613,7 +664,7 @@ class Agent(Entity):
             where the wumpus was killed
         """
 
-        # prop has to be None and visited to false to reevaluate 
+        # prop has to be None and visited to false to reevaluate
         if pos in self.memory:
             self.memory[pos]["visited"] = False
             self.memory[pos]["wumpus"] = None

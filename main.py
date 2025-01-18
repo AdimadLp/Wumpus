@@ -65,7 +65,7 @@ class WumpusGame:
         self.all_agents = []
 
         # Interval for calling the act function (default 1 second)
-        self.act_interval = 300 #1000  # milliseconds
+        self.act_interval = 300  # 1000  # milliseconds
         self.last_act_time = 0  # last time the act function was called
 
         self.DEBUG = True
@@ -161,6 +161,11 @@ class WumpusGame:
             self.all_agents.append(self.agent)
             self.agent = self.get_next_agent()
 
+        # Check if the game is over
+        if self.environment.game_over:
+            print("Game Over!")
+            self.running = False
+
     def handle_key_event(self, key, no_agent=False):
         """
         Handle key events for user input to move the agent.
@@ -245,9 +250,15 @@ class WumpusGame:
 
                 # Call act for every agent in auto mode at the specified interval
                 if current_time - self.last_act_time >= self.act_interval:
-                    print('------------------------------------- SIM STEP --------------------------------------------')
+                    print(
+                        "------------------------------------- SIM STEP --------------------------------------------"
+                    )
                     for agent in self.environment.entities:
-                        if agent.entity_type == "Agent" and agent.auto_mode and agent.alive:
+                        if (
+                            agent.entity_type == "Agent"
+                            and agent.auto_mode
+                            and agent.alive
+                        ):
                             agent.act()
                     self.last_act_time = current_time
 
@@ -257,7 +268,7 @@ class WumpusGame:
             await asyncio.sleep(0)
 
         self.save_scores_to_csv()
-        pygame.quit()
+        # pygame.quit()
 
     def save_scores_to_csv(self):
         """
