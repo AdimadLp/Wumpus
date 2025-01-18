@@ -54,6 +54,10 @@ class WumpusGame:
         self.environment = Environment(size=GRID_SIZE, cell_size=CELL_SIZE)
         # Search the first agent with auto_mode set to False
         self.agent = self.get_next_agent()
+        self.game_over = False  # Add a game_over flag
+        self.restart_button = pygame.Rect(
+            WIDTH // 2 - 50, HEIGHT // 2 + 50, 100, 50
+        )  # Define the restart button
 
         self.running = True
         self.key_hold_time = 0  # start time of key hold in milliseconds
@@ -118,8 +122,46 @@ class WumpusGame:
         # Draw the scoreboard
         self.draw_scoreboard()
 
+        # Draw the game over label if the game is over
+        if self.game_over:
+            self.draw_game_over_label()
+            self.draw_restart_button()
+
         # Update the display once
         pygame.display.flip()
+
+    def draw_game_over_label(self):
+        """
+        Draw the game over label.
+        """
+        font = pygame.font.Font(None, 72)
+        game_over_text = "Game Over"
+        text_surface = font.render(game_over_text, True, (255, 0, 0))
+        screen.blit(
+            text_surface,
+            (
+                WIDTH // 2 - text_surface.get_width() // 2,
+                HEIGHT // 2 - text_surface.get_height() // 2,
+            ),
+        )
+
+    def draw_restart_button(self):
+        """
+        Draw the restart button.
+        """
+        font = pygame.font.Font(None, 36)
+        pygame.draw.rect(screen, (255, 255, 255), self.restart_button)
+        restart_text = "Restart"
+        text_surface = font.render(restart_text, True, (0, 0, 0))
+        screen.blit(
+            text_surface,
+            (
+                self.restart_button.x
+                + (self.restart_button.width - text_surface.get_width()) // 2,
+                self.restart_button.y
+                + (self.restart_button.height - text_surface.get_height()) // 2,
+            ),
+        )
 
     def draw_scoreboard(self):
         """
@@ -163,8 +205,7 @@ class WumpusGame:
 
         # Check if the game is over
         if self.environment.game_over:
-            print("Game Over!")
-            self.running = False
+            self.game_over = True  # Set the game_over flag
 
     def handle_key_event(self, key, no_agent=False):
         """
@@ -175,6 +216,9 @@ class WumpusGame:
         key : int
             The key code of the pressed key.
         """
+        if self.game_over:
+            return  # Prevent agents from moving after game over
+
         # Define the possible directions
         direction_map = {
             K_UP: "back",
@@ -233,6 +277,9 @@ class WumpusGame:
                 if event.type == KEYDOWN:
                     self.handle_key_event(event.key, no_agent=True)
 
+                if event.type == MOUSEBUTTONDOWN and self.game_over:
+                    if self.restart_button.collidepoint(event.pos):
+                        self.restart_game()
             # Check if the agent is set and the key is held
             if (
                 self.agent
@@ -249,7 +296,10 @@ class WumpusGame:
                     self.debug_allow_next_step = False
 
                 # Call act for every agent in auto mode at the specified interval
-                if current_time - self.last_act_time >= self.act_interval:
+                if (
+                    not self.game_over
+                    and current_time - self.last_act_time >= self.act_interval
+                ):
                     print(
                         "------------------------------------- SIM STEP --------------------------------------------"
                     )
@@ -269,6 +319,13 @@ class WumpusGame:
 
         self.save_scores_to_csv()
         # pygame.quit()
+
+    def restart_game(self):
+        """
+        Restart the game by reinitializing the game state.
+        """
+        self.__init__()  # Reinitialize the game state
+        asyncio.create_task(self.run())  # Schedule the game loop
 
     def save_scores_to_csv(self):
         """
