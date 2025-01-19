@@ -39,7 +39,7 @@ class Environment:
         self.game_over = False
         self.entities = []
         # Entities defined first will be placed first
-        self.entity_counts = {Wumpus: 3, Gold: 10, Pit: 10, Agent: 5}
+        self.entity_counts = {Wumpus: 1, Gold: 10, Pit: 10, Agent: 5}
         self.place_entities()
 
         # pre-determined test field:
