@@ -49,12 +49,14 @@ class Wumpus(Entity):
             The type of interaction (e.g., "neutral", "attack").
         """
         if interaction_type == "neutral":
-            print(f"                                                     !!!!!! {agent} has been killed by a Wumpus !!!!!!")
+            print(
+                f"                                                     !!!!!! {agent} has been killed by a Wumpus !!!!!!"
+            )
             agent.die()
-            self.revial()
+            self.reveal()
 
         elif interaction_type == "attack":
             print(f"{agent} killed a Wumpus!")
             agent.score += self.reward
-            self.revial()
+            self.reveal()
             self.die()

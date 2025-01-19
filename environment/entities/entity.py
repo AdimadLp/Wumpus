@@ -64,7 +64,7 @@ class Entity:
         self.alive = False
         self.environment.remove_entity(self)
 
-    def revial(self):
+    def reveal(self):
         """
         Reveal the cell where the entity is located.
         """

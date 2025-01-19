@@ -53,4 +53,4 @@ class Pit(Entity):
         if interaction_type == "neutral":
             print("Agent has fallen into a pit!")
             agent.die()
-            self.revial()
+            self.reveal()

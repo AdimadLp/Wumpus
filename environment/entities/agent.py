@@ -95,6 +95,17 @@ class Agent(Entity):
         x, y = self.position
         self.environment.grid[x][y].reveal()
 
+    def reveal_wumpus(self):
+        """
+        Reveal the Wumpus if the probability for the cell with the Wumpus is 1.
+        """
+        for pos, data in self.memory.items():
+            if isinstance(pos, tuple) and data.get("wumpus") == 1.0:
+                cell = self.environment.grid[pos[0]][pos[1]]
+                if cell.entity and cell.entity.entity_type == "Wumpus":
+                    cell.entity.reveal()
+                    print(f"{self} revealed a Wumpus at {pos}!")
+
     def perceive(self):
         """
         Logic for the agent to perceive its surroundings.
@@ -159,6 +170,8 @@ class Agent(Entity):
         # estimate probabilities
         for nx, ny in neumann_neighborhood(x, y, self.environment.size):
             self.estimate_cell((nx, ny))
+
+        self.reveal_wumpus()
 
         # print(self.memory)
         print(f"------ {self} estimates ------")
