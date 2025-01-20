@@ -10,4 +10,5 @@ pip install -r Wumpus\requirements.txt
 # Steuerung
 
 d: toggle Debug mode (holds back simulation steps)
+
 s: proceeds with next step (if debug mode is active)
