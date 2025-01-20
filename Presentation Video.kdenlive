@@ -538,7 +538,7 @@
 ]
 </property>
   <property name="kdenlive:sequenceproperties.lastUsedFrame">0</property>
-  <property name="kdenlive:monitorPosition">214</property>
+  <property name="kdenlive:monitorPosition">215</property>
   <property name="kdenlive:zone_in">159</property>
   <property name="kdenlive:zone_out">2034</property>
   <track producer="producer0"/>
@@ -738,6 +738,24 @@
   <property name="kdenlive:documentnotesversion">2</property>
   <property name="kdenlive:docproperties.opensequences">{89e0d014-0001-4b21-ba4d-b9ba006739c8}</property>
   <property name="kdenlive:docproperties.activetimeline">{89e0d014-0001-4b21-ba4d-b9ba006739c8}</property>
+  <property name="kdenlive:docproperties.rendercategory">Ultra-High Definition (4K)</property>
+  <property name="kdenlive:docproperties.rendercustomquality">-1</property>
+  <property name="kdenlive:docproperties.renderendguide">-1</property>
+  <property name="kdenlive:docproperties.renderexportaudio">0</property>
+  <property name="kdenlive:docproperties.renderfullcolorrange">0</property>
+  <property name="kdenlive:docproperties.rendermode">0</property>
+  <property name="kdenlive:docproperties.renderplay">0</property>
+  <property name="kdenlive:docproperties.renderpreview">0</property>
+  <property name="kdenlive:docproperties.renderprofile">WebM-VP9/Opus (libre)</property>
+  <property name="kdenlive:docproperties.renderrescale">0</property>
+  <property name="kdenlive:docproperties.renderrescaleheight">750</property>
+  <property name="kdenlive:docproperties.renderrescalewidth">750</property>
+  <property name="kdenlive:docproperties.renderspeed">6</property>
+  <property name="kdenlive:docproperties.renderstartguide">-1</property>
+  <property name="kdenlive:docproperties.rendertcoverlay">0</property>
+  <property name="kdenlive:docproperties.rendertctype">-1</property>
+  <property name="kdenlive:docproperties.rendertwopass">0</property>
+  <property name="kdenlive:docproperties.renderurl">Presentation Video.webm</property>
   <property name="xml_retain">1</property>
   <entry in="00:00:00.000" out="00:00:00.000" producer="{89e0d014-0001-4b21-ba4d-b9ba006739c8}"/>
   <entry in="00:00:00.000" out="00:00:38.710" producer="chain1"/>
