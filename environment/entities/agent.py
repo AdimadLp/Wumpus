@@ -270,6 +270,9 @@ class Agent(Entity):
         elif self.vote_admin:
             if self.vote_state == "exit":
                 self.environment.game_over = True
+                for row in self.environment.grid:
+                    for cell in row:
+                        cell.reveal()
             else:
                 self.vote_admin = False
 

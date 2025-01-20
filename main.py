@@ -140,7 +140,7 @@ class WumpusGame:
         agent_score = sum([agent.score for agent in self.environment.entities if agent.entity_type == 'Agent'])
         font = pygame.font.Font(None, 72)
         game_over_text1 = "Agents decided to end the game"
-        game_over_text2 = f"scored {agent_score} / {total_score} points"
+        game_over_text2 = f"Score: {agent_score} / {total_score} points"
         text_surface1 = font.render(game_over_text1, True, (255, 0, 0))
         screen.blit(
             text_surface1,
