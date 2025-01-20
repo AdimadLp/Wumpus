@@ -5,6 +5,7 @@ from environment import Environment
 import asyncio  # Necessary for pygbag
 import csv
 from datetime import datetime
+from environment.entities import Wumpus, Gold
 
 # Run pygbag main.py to play the game in the browser
 
@@ -69,7 +70,7 @@ class WumpusGame:
         self.all_agents = []
 
         # Interval for calling the act function (default 1 second)
-        self.act_interval = 300  # 1000  # milliseconds
+        self.act_interval = 1000  # 1000  # milliseconds
         self.last_act_time = 0  # last time the act function was called
 
         self.DEBUG = True
@@ -134,14 +135,26 @@ class WumpusGame:
         """
         Draw the game over label.
         """
+
+        total_score = self.environment.entity_counts[Wumpus] * 1000 + self.environment.entity_counts[Gold] * 100
+        agent_score = sum([agent.score for agent in self.environment.entities if agent.entity_type == 'Agent'])
         font = pygame.font.Font(None, 72)
-        game_over_text = "Game Over"
-        text_surface = font.render(game_over_text, True, (255, 0, 0))
+        game_over_text1 = "Agents decided to end the game"
+        game_over_text2 = f"scored {agent_score} / {total_score} points"
+        text_surface1 = font.render(game_over_text1, True, (255, 0, 0))
         screen.blit(
-            text_surface,
+            text_surface1,
             (
-                WIDTH // 2 - text_surface.get_width() // 2,
-                HEIGHT // 2 - text_surface.get_height() // 2,
+                WIDTH // 2 - text_surface1.get_width() // 2,
+                HEIGHT // 3 - text_surface1.get_height() // 2,
+            ),
+        )
+        text_surface2 = font.render(game_over_text2, True, (255, 0, 0))
+        screen.blit(
+            text_surface2,
+            (
+                WIDTH // 2 - text_surface2.get_width() // 2,
+                HEIGHT // 2 - text_surface2.get_height() // 2,
             ),
         )
 
