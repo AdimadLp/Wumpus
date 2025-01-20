@@ -2,7 +2,7 @@
 
 ```
 git clone git@github.com:AdimadLp/Wumpus.git
-python -m wumpus_venv C:\path\to\new\virtual\environment
+python -m venv C:\path\to\wumpus_venv
 source wumpus_venv\bin\activate
 pip install -r Wumpus\requirements.txt
 ```
